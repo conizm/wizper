@@ -9,6 +9,11 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Lato:wght@300;400&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
 
     <style>
@@ -29,14 +34,11 @@
             font-style: italic;
         }
         
-        /* --- アニメーション定義 --- */
-        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
 
-        /* 下からフワッと浮き上がる */
         @keyframes floatUp {
             0% { 
                 opacity: 0;
@@ -48,40 +50,26 @@
             }
         }
 
-        /* --- 各要素のアニメーションクラス --- */
-
-        /* 基本フェードイン (タイトル等) */
         .anim-fade-in {
             opacity: 0;
             animation: fadeIn 2.0s ease-out forwards;
         }
 
-        /* 背景専用：じわーっとゆっくりフェードイン */
         .anim-fade-in-bg {
             opacity: 0;
-            animation: fadeIn 5.0s ease-out forwards; /* 5秒かけてじっくり表示 */
+            animation: fadeIn 5.0s ease-out forwards;
         }
 
-        /* すりガラスボタン（下から浮き上がる演出） */
         .glass-float-container {
-            /* ぼかしは常時ON */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(5px);             
             -webkit-backdrop-filter: blur(5px);     
             border: 1px solid rgba(255, 255, 255, 0.15);
-            
-            /* 初期状態：見えない・下にずれている */
             opacity: 0;
-            
-            /* アニメーション適用：遅延はJS側で制御しやすくするためCSSでは定義だけ */
             animation: floatUp 1.5s ease-out forwards;
-            
-            /* 描画安定化 */
             transform: translateZ(0); 
         }
 
-        /* --- オーバーレイ --- */
-        
         .overlay-container {
             position: absolute;
             inset: 0;
@@ -99,7 +87,6 @@
             pointer-events: auto;
         }
         
-        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar {
             width: 4px;
         }
@@ -111,7 +98,6 @@
             border-radius: 2px;
         }
         
-        /* Safe area padding */
         .mb-safe {
             margin-bottom: env(safe-area-inset-bottom, 20px);
         }
@@ -123,12 +109,32 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- ICONS ---
+        const FIREBASE_CONFIG = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        let auth = null;
+        let db = null;
+        let googleProvider = null;
+
+        try {
+            if (firebase.apps.length === 0 && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+                firebase.initializeApp(FIREBASE_CONFIG);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                googleProvider = new firebase.auth.GoogleAuthProvider();
+            }
+        } catch (e) {
+            console.error("Firebase init error:", e);
+        }
+
         const SettingsIcon = ({ size = 20 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         );
         const BookIcon = ({ size = 20 }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -142,28 +148,80 @@
         const CoffeeIcon = ({ size = 18 }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         );
+        const GoogleIcon = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.04-1.133 8.133-3.293 2.147-2.147 2.813-5.173 2.813-7.627 0-.76-.08-1.467-.173-2.16H12.48z"/></svg>
+        );
 
-        const CHAPTERS = [
-            { id: 1, title: "The Master's Desk", sub: "Study Room", locked: false, progress: "Complete" },
-            { id: 2, title: "Greenhouse", sub: "Herbs & Roots", locked: true, progress: "" },
-            { id: 3, title: "Midnight Market", sub: "Rare Artifacts", locked: true, progress: "" },
-            { id: 4, title: "Ritual Chamber", sub: "The Grand Spell", locked: true, progress: "" },
+        const CHAPTER_DEFINITIONS = [
+            { id: 1, title: "The Master's Desk", sub: "Study Room" },
+            { id: 2, title: "Greenhouse", sub: "Herbs & Roots" },
+            { id: 3, title: "Midnight Market", sub: "Rare Artifacts" },
+            { id: 4, title: "Ritual Chamber", sub: "The Grand Spell" },
         ];
 
         const Menu = () => {
             const [view, setView] = useState('main'); 
             const [showTransition, setShowTransition] = useState(false);
             const [subtitles, setSubtitles] = useState(false);
-            
-            // 初回ロード制御
             const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+            const [user, setUser] = useState(null);
+            const [clearedChapters, setClearedChapters] = useState([1]); 
+            const [loadingAuth, setLoadingAuth] = useState(true);
 
             useEffect(() => {
                 const timer = setTimeout(() => {
                     setIsInitialLoad(false);
-                }, 6000); // 背景が5秒なので、余裕を持って少し長めに
+                }, 6000); 
                 return () => clearTimeout(timer);
             }, []);
+
+            useEffect(() => {
+                if (!auth) {
+                    setLoadingAuth(false);
+                    return;
+                }
+                const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+                    setUser(currentUser);
+                    if (currentUser) {
+                        try {
+                            const docRef = db.collection("users").doc(currentUser.uid);
+                            const doc = await docRef.get();
+                            if (doc.exists) {
+                                const data = doc.data();
+                                if (data.clearedChapters) {
+                                    setClearedChapters(data.clearedChapters);
+                                }
+                            } else {
+                                await docRef.set({ clearedChapters: [1] }, { merge: true });
+                            }
+                        } catch (err) {
+                            console.error("Error fetching progress:", err);
+                        }
+                    }
+                    setLoadingAuth(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            const handleLogin = async () => {
+                if (!auth) {
+                    alert("Firebase API Key is missing in code.");
+                    return;
+                }
+                try {
+                    await auth.signInWithPopup(googleProvider);
+                } catch (error) {
+                    console.error("Login failed:", error);
+                }
+            };
+
+            const handleLogout = async () => {
+                if (auth) {
+                    await auth.signOut();
+                    setClearedChapters([1]); 
+                }
+            };
 
             const handleStartGame = () => {
                 setShowTransition(true);
@@ -173,14 +231,12 @@
                 }, 1000);
             };
 
-            // アニメーションクラスヘルパー
             const getGlassClass = () => isInitialLoad ? 'glass-float-container' : 'glass-float-container !animate-none !opacity-100';
             const getFadeClass = (animClass) => isInitialLoad ? animClass : 'opacity-100';
 
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
                     
-                    {/* Background: Delay 0s, Duration 5s (ゆっくりじわーっと) */}
                     <div className={`absolute inset-0 z-0 pointer-events-none ${getFadeClass('anim-fade-in-bg')}`} style={isInitialLoad ? {animationDelay: '0s'} : {}}>
                         <img 
                             src="https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=2400&auto=format&fit=crop" 
@@ -190,8 +246,6 @@
                         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] via-transparent to-[#1a1a1a]"></div>
                     </div>
 
-                    {/* --- TOP SECTION (Logo) --- */}
-                    {/* Title: Delay 1.5s */}
                     <div 
                         className={`z-10 text-center mt-8 shrink-0 ${getFadeClass('anim-fade-in')}`}
                         style={isInitialLoad ? {animationDelay: '1.5s'} : {}}
@@ -201,12 +255,10 @@
                         <p className="font-script text-xl text-gray-400 italic opacity-80">- The Apprentice's Log -</p>
                     </div>
 
-                    {/* --- BOTTOM SECTION (Controls) --- */}
                     <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-6">
                         
                         <div className="w-full flex flex-col items-center gap-6">
                             
-                            {/* Lead Text: Delay 2.5s */}
                             <p 
                                 className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} 
                                 style={isInitialLoad ? {animationDelay: '2.5s'} : {}}
@@ -214,7 +266,6 @@
                                 "Listen carefully, apprentice.<br/>My eyes aren't what they used to be..."
                             </p>
 
-                            {/* Open Journal Button: Delay 2.8s */}
                             <div className="w-full">
                                 <button 
                                     onClick={handleStartGame}
@@ -225,7 +276,6 @@
                                 </button>
                             </div>
                             
-                            {/* Sub Buttons: Delay 3.0s */}
                             <div 
                                 className={`flex gap-4 w-full ${getFadeClass('anim-fade-in')}`} 
                                 style={isInitialLoad ? {animationDelay: '3.0s'} : {}}
@@ -244,7 +294,6 @@
                                 </button>
                             </div>
                             
-                            {/* Settings: Delay 3.2s */}
                             <div 
                                 className={`${getFadeClass('anim-fade-in')}`} 
                                 style={isInitialLoad ? {animationDelay: '3.2s'} : {}}
@@ -259,9 +308,6 @@
                         </div>
                     </div>
 
-                    {/* --- OVERLAYS --- */}
-                    
-                    {/* 1. LOG (CHAPTERS) */}
                     <div className={`overlay-container flex flex-col ${view === 'chapters' ? 'active' : ''}`}>
                         <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
                             <h2 className="text-lg font-serif tracking-widest">Journal Log</h2>
@@ -269,35 +315,35 @@
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-4 p-8">
                             <p className="text-xs text-gray-500 font-serif italic mb-2 text-center">Record of assigned tasks.</p>
-                            {CHAPTERS.map(chapter => (
-                                <div key={chapter.id} className={`p-4 border ${chapter.locked ? 'border-white/5 text-gray-600' : 'border-white/20 bg-white/5'} transition-all`}>
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-[10px] uppercase tracking-widest opacity-50">Chapter {chapter.id}</span>
-                                        {chapter.locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">{chapter.progress}</span>}
+                            
+                            {CHAPTER_DEFINITIONS.map(chapter => {
+                                const maxCleared = Math.max(0, ...clearedChapters);
+                                const locked = chapter.id > maxCleared + (maxCleared < chapter.id ? 0 : 1); 
+                                
+                                return (
+                                    <div key={chapter.id} className={`p-4 border ${locked ? 'border-white/5 text-gray-600' : 'border-white/20 bg-white/5'} transition-all`}>
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[10px] uppercase tracking-widest opacity-50">Chapter {chapter.id}</span>
+                                            {locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">Complete</span>}
+                                        </div>
+                                        <h3 className="font-serif text-lg mb-1">{chapter.title}</h3>
+                                        <p className="font-script text-sm italic opacity-60">{chapter.sub}</p>
                                     </div>
-                                    <h3 className="font-serif text-lg mb-1">{chapter.title}</h3>
-                                    <p className="font-script text-sm italic opacity-60">{chapter.sub}</p>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* 2. GUIDE (HOW TO PLAY) */}
                     <div className={`overlay-container flex flex-col ${view === 'howto' ? 'active' : ''}`}>
                         <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
                             <h2 className="text-lg font-serif tracking-widest">Guide</h2>
                             <button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button>
                         </div>
-                        
                         <div className="flex-1 overflow-y-auto custom-scroll p-6 flex flex-col justify-start pt-12 items-center">
                             <div className="flex flex-col gap-8 items-center text-center">
-                                
                                 <div className="max-w-xs shrink-0">
-                                    <p className="text-sm text-gray-400 italic mb-2">
-                                        "Find the hidden objects."
-                                    </p>
+                                    <p className="text-sm text-gray-400 italic mb-2">"Find the hidden objects."</p>
                                 </div>
-
                                 <div className="flex flex-col gap-6 w-full max-w-xs px-2">
                                     <div className="flex items-center gap-5 text-left">
                                         <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
@@ -308,7 +354,6 @@
                                             <p className="text-xs text-gray-400 font-serif italic">Hear the voice instructions.</p>
                                         </div>
                                     </div>
-                                    
                                     <div className="flex items-center gap-5 text-left">
                                         <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
                                             <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -318,7 +363,6 @@
                                             <p className="text-xs text-gray-400 font-serif italic">Pinch to zoom. Swipe to pan.</p>
                                         </div>
                                     </div>
-                                    
                                     <div className="flex items-center gap-5 text-left">
                                         <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
                                             <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
@@ -329,12 +373,10 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
 
-                    {/* 3. SETTINGS */}
                     <div className={`overlay-container flex flex-col ${view === 'settings' ? 'active' : ''}`}>
                         <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
                             <h2 className="text-lg font-serif tracking-widest">Settings</h2>
@@ -342,6 +384,39 @@
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scroll p-8 flex flex-col gap-8">
                             
+                            <div className="flex flex-col gap-3">
+                                <span className="text-sm tracking-widest mb-2">Cloud Save</span>
+                                {user ? (
+                                    <div className="p-4 border border-white/10 bg-white/5 flex flex-col gap-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">
+                                                {user.photoURL && <img src={user.photoURL} alt="User" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-white">{user.displayName}</p>
+                                                <p className="text-[10px] text-gray-400">Progress Saved</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={handleLogout} className="text-[10px] text-red-400 underline self-start mt-1">Sign Out</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={handleLogin}
+                                            className="flex items-center justify-center gap-3 w-full py-3 border border-white/20 hover:bg-white/5 text-gray-300 transition-colors"
+                                        >
+                                            <GoogleIcon size={16} />
+                                            <span className="text-xs font-bold uppercase tracking-widest">Sign in with Google</span>
+                                        </button>
+                                        <p className="text-[10px] text-gray-500 italic">
+                                            Sign in to save your progress across devices.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-px bg-white/50 w-full"></div>
+
                             <div className="flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm tracking-widest">Subtitles</span>
@@ -357,7 +432,7 @@
                                 </p>
                             </div>
 
-                            <div className="h-px bg-white/10 w-full"></div>
+                            <div className="h-px bg-white/50 w-full"></div>
 
                             <div className="flex flex-col gap-6 items-center mt-4">
                                 <a href="#" className="text-xs text-gray-500 hover:text-white underline underline-offset-4 decoration-gray-700 transition-colors">
@@ -371,12 +446,11 @@
                             </div>
 
                             <div className="mt-auto pt-8 text-center">
-                                <p className="text-[10px] text-gray-700 font-mono">v0.1.0 Beta</p>
+                                <p className="text-[10px] text-gray-700 font-mono">v0.2.0 Cloud</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* TRANSITION OVERLAY */}
                     {showTransition && (
                         <div className="absolute inset-0 bg-black z-50 animate-fade-in flex items-center justify-center">
                             <p className="text-white font-serif tracking-widest animate-pulse opacity-80">Opening Journal...</p>
