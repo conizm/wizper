@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Wizper - Audio Hidden Object Game</title>
     
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -35,6 +41,7 @@
             font-style: italic;
         }
         
+        /* --- User Defined Animations --- */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -51,15 +58,10 @@
             }
         }
         
-        /* New Animations for Game/Story */
+        /* WipeIn for Game/Story Screens */
         @keyframes wipeIn { 
             0% { opacity: 1; clip-path: inset(0 100% 0 0); } 
             100% { opacity: 1; clip-path: inset(0 0 0 0); } 
-        }
-        @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }
-        @keyframes breathe { 
-            0%, 100% { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); } 
-            50% { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); } 
         }
 
         .anim-fade-in {
@@ -72,7 +74,6 @@
             animation: fadeIn 5.0s ease-out forwards;
         }
 
-        /* Home Screen Classes */
         .glass-float-container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(5px);             
@@ -83,6 +84,23 @@
             transform: translateZ(0); 
         }
 
+        /* Additional Animations for Game Loop */
+        .glass-wipe-anim {
+            opacity: 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);     
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: wipeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform: translateZ(0); border-radius: 2px; overflow: hidden; 
+        }
+
+        @keyframes breathe { 
+            0%, 100% { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); } 
+            50% { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); } 
+        }
+        @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }
+
+        /* Overlays */
         .overlay-container {
             position: absolute;
             inset: 0;
@@ -98,12 +116,6 @@
         .overlay-container.active {
             opacity: 1;
             pointer-events: auto;
-        }
-        
-        /* Game Viewport */
-        .game-viewport {
-            touch-action: none;
-            background-color: #000;
         }
         
         .custom-scroll::-webkit-scrollbar {
@@ -123,15 +135,25 @@
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
+        
+        /* Game specific */
+        .game-viewport { touch-action: none; background-color: #000; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e));
+            });
+        }
+    </script>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- FIREBASE INIT ---
         const FIREBASE_CONFIG = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -156,13 +178,12 @@
             console.error("Firebase init error:", e);
         }
 
-        // --- DATA ---
+        // --- GAME DATA ---
         const CHAPTERS_DB = {
             1: {
                 id: 1,
                 title: "The Master's Desk",
                 sub: "Study Room",
-                // Story Briefing Data
                 storyLines: [
                     "Ah, there you are, apprentice.",
                     "My desk is in utter chaos again...",
@@ -170,7 +191,6 @@
                     "Be my eyes, will you?"
                 ],
                 mission: "- Find 5 hidden items -",
-                // Game Data
                 imageUrl: "https://wordrobe.cc/wizper/images/chapter_1.png",
                 script: "First, find the old key... yes, look down low. Then the strange stone, the mark, the sand, and finally the coin at the top.",
                 targets: [
@@ -193,7 +213,7 @@
                     "Don't break anything."
                 ],
                 mission: "- Find 3 hidden items -",
-                imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2400&auto=format&fit=crop", // 仮画像
+                imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2400&auto=format&fit=crop", 
                 script: "Find the red flower on the left, the trowel in the middle, and the watering can on the right.",
                 targets: [
                     { id: 1, name: "Red Flower", x: 20, y: 50, radius: 10, found: false },
@@ -201,18 +221,42 @@
                     { id: 3, name: "Watering Can", x: 80, y: 50, radius: 10, found: false }
                 ],
                 completionText: "Excellent work. These roots are fresh. Now, to the cauldron."
+            },
+            3: {
+                id: 3, title: "Midnight Market", sub: "Rare Artifacts",
+                storyLines: ["The merchant is waiting.", "Find the items before he changes his mind."],
+                mission: "- Find 4 hidden items -",
+                imageUrl: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=2400",
+                script: "Dummy script.", targets: [], completionText: "You are becoming useful."
+            },
+            4: {
+                id: 4, title: "Ritual Chamber", sub: "The Grand Spell",
+                storyLines: ["The stars align.", "Precision is everything."],
+                mission: "- Find 5 hidden items -",
+                imageUrl: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2400",
+                script: "Dummy script.", targets: [], completionText: "The spell is complete."
             }
         };
 
-        // --- ICONS ---
-        const SettingsIcon = ({ size = 20 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>);
-        const BookIcon = ({ size = 20 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>);
-        const LockIcon = ({ size = 16 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>);
-        const EarIcon = ({ size = 20 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0v5"/><path d="M18 19a3 3 0 0 1-6 0v-2h6v2z"/><path d="M6 19v-2h6"/></svg>);
-        const CoffeeIcon = ({ size = 18 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>);
-        const GoogleIcon = ({ size = 16 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.04-1.133 8.133-3.293 2.147-2.147 2.813-5.173 2.813-7.627 0-.76-.08-1.467-.173-2.16H12.48z"/></svg>);
-        
-        // Game Icons (CurrentColor for theme adaptation)
+        const SettingsIcon = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        );
+        const BookIcon = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        );
+        const LockIcon = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        );
+        const EarIcon = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0v5"/><path d="M18 19a3 3 0 0 1-6 0v-2h6v2z"/><path d="M6 19v-2h6"/></svg>
+        );
+        const CoffeeIcon = ({ size = 18 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        );
+        const GoogleIcon = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.04-1.133 8.133-3.293 2.147-2.147 2.813-5.173 2.813-7.627 0-.76-.08-1.467-.173-2.16H12.48z"/></svg>
+        );
+        // Game Icons
         const Play = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><polygon points="7 4 21 12 7 20"/></svg>);
         const Pause = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>);
         const MusicNote = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>);
@@ -221,266 +265,8 @@
         const ArrowLeft = ({ size = 24, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>);
         const NextIcon = ({ size = 16, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
 
-        // ----------------------------------------------------------------------
-        // COMPONENT: Home Screen (Based on User's Code)
-        // ----------------------------------------------------------------------
-        const HomeScreen = ({ onNavigate, user, login, logout, clearedChapters }) => {
-            const [view, setView] = useState('main'); 
-            const [showTransition, setShowTransition] = useState(false);
-            const [subtitles, setSubtitles] = useState(false);
-            const [isInitialLoad, setIsInitialLoad] = useState(true);
+        // --- COMPONENTS ---
 
-            useEffect(() => {
-                const timer = setTimeout(() => {
-                    setIsInitialLoad(false);
-                }, 6000); 
-                return () => clearTimeout(timer);
-            }, []);
-
-            const handleStartGame = () => {
-                setShowTransition(true);
-                setTimeout(() => {
-                    // Logic linked to App navigation
-                    const lastCleared = Math.max(0, ...clearedChapters);
-                    const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
-                    onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
-                    setShowTransition(false);
-                }, 1000);
-            };
-
-            const getGlassClass = () => isInitialLoad ? 'glass-float-container' : 'glass-float-container !animate-none !opacity-100';
-            const getFadeClass = (animClass) => isInitialLoad ? animClass : 'opacity-100';
-
-            return (
-                <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
-                    
-                    <div className={`absolute inset-0 z-0 pointer-events-none ${getFadeClass('anim-fade-in-bg')}`} style={isInitialLoad ? {animationDelay: '0s'} : {}}>
-                        <img 
-                            src="https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=2400&auto=format&fit=crop" 
-                            alt="Background" 
-                            className="w-full h-full object-cover opacity-40 grayscale"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] via-transparent to-[#1a1a1a]"></div>
-                    </div>
-
-                    <div 
-                        className={`z-10 text-center mt-8 shrink-0 ${getFadeClass('anim-fade-in')}`}
-                        style={isInitialLoad ? {animationDelay: '1.5s'} : {}}
-                    >
-                        <p className="text-[10px] tracking-[0.4em] uppercase text-gray-400 mb-4">Audio Hidden Object Game</p>
-                        <h1 className="text-5xl md:text-7xl font-serif text-[#f9f9f7] tracking-wider mb-2">Wizper</h1>
-                        <p className="font-script text-xl text-gray-400 italic opacity-80">- The Apprentice's Log -</p>
-                    </div>
-
-                    <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-6">
-                        
-                        <div className="w-full flex flex-col items-center gap-6">
-                            
-                            <p 
-                                className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} 
-                                style={isInitialLoad ? {animationDelay: '2.5s'} : {}}
-                            >
-                                "Listen carefully, apprentice.<br/>My eyes aren't what they used to be..."
-                            </p>
-
-                            <div className="w-full">
-                                <button 
-                                    onClick={handleStartGame}
-                                    className={`w-full py-4 hover:bg-white/10 transition-colors text-sm tracking-[0.2em] uppercase font-serif text-[#f9f9f7] ${getGlassClass()}`}
-                                    style={isInitialLoad ? {animationDelay: '2.8s'} : {}}
-                                >
-                                    Open Journal
-                                </button>
-                            </div>
-                            
-                            <div 
-                                className={`flex gap-4 w-full ${getFadeClass('anim-fade-in')}`} 
-                                style={isInitialLoad ? {animationDelay: '3.0s'} : {}}
-                            >
-                                <button 
-                                    onClick={() => setView('chapters')}
-                                    className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"
-                                >
-                                    <BookIcon size={14} /> Log
-                                </button>
-                                <button 
-                                    onClick={() => setView('howto')}
-                                    className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"
-                                >
-                                    <EarIcon size={14} /> Guide
-                                </button>
-                            </div>
-                            
-                            <div 
-                                className={`${getFadeClass('anim-fade-in')}`} 
-                                style={isInitialLoad ? {animationDelay: '3.2s'} : {}}
-                            >
-                                <button 
-                                    onClick={() => setView('settings')}
-                                    className="mt-2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    <SettingsIcon size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={`overlay-container flex flex-col ${view === 'chapters' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
-                            <h2 className="text-lg font-serif tracking-widest">Journal Log</h2>
-                            <button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-4 p-8">
-                            <p className="text-xs text-gray-500 font-serif italic mb-2 text-center">Record of assigned tasks.</p>
-                            
-                            {Object.values(CHAPTERS_DB).map(chapter => {
-                                const maxCleared = Math.max(0, ...clearedChapters);
-                                const locked = chapter.id > maxCleared + (maxCleared < chapter.id ? 0 : 1);
-                                
-                                return (
-                                    <div key={chapter.id} onClick={() => !locked && onNavigate('STORY', chapter.id)} className={`p-4 border ${locked ? 'border-white/5 text-gray-600' : 'border-white/20 bg-white/5 cursor-pointer hover:bg-white/10'} transition-all`}>
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="text-[10px] uppercase tracking-widest opacity-50">Chapter {chapter.id}</span>
-                                            {locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">Available</span>}
-                                        </div>
-                                        <h3 className="font-serif text-lg mb-1">{chapter.title}</h3>
-                                        <p className="font-script text-sm italic opacity-60">{chapter.sub}</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className={`overlay-container flex flex-col ${view === 'howto' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
-                            <h2 className="text-lg font-serif tracking-widest">Guide</h2>
-                            <button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scroll p-6 flex flex-col justify-start pt-12 items-center">
-                            <div className="flex flex-col gap-8 items-center text-center">
-                                <div className="max-w-xs shrink-0">
-                                    <p className="text-sm text-gray-400 italic mb-2">"Find the hidden objects."</p>
-                                </div>
-                                <div className="flex flex-col gap-6 w-full max-w-xs px-2">
-                                    <div className="flex items-center gap-5 text-left">
-                                        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
-                                            <EarIcon size={20} />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xs font-bold uppercase tracking-widest mb-1">Listen</h3>
-                                            <p className="text-xs text-gray-400 font-serif italic">Hear the voice instructions.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-5 text-left">
-                                        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xs font-bold uppercase tracking-widest mb-1">Search</h3>
-                                            <p className="text-xs text-gray-400 font-serif italic">Pinch to zoom. Swipe to pan.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-5 text-left">
-                                        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xs font-bold uppercase tracking-widest mb-1">Select</h3>
-                                            <p className="text-xs text-gray-400 font-serif italic">Double tap to collect the object.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={`overlay-container flex flex-col ${view === 'settings' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0">
-                            <h2 className="text-lg font-serif tracking-widest">Settings</h2>
-                            <button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scroll p-8 flex flex-col gap-8">
-                            
-                            <div className="flex flex-col gap-3">
-                                <span className="text-sm tracking-widest mb-2">Cloud Save</span>
-                                {user ? (
-                                    <div className="p-4 border border-white/10 bg-white/5 flex flex-col gap-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">
-                                                {user.photoURL && <img src={user.photoURL} alt="User" />}
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-white">{user.displayName}</p>
-                                                <p className="text-[10px] text-gray-400">Progress Saved</p>
-                                            </div>
-                                        </div>
-                                        <button onClick={logout} className="text-[10px] text-red-400 underline self-start mt-1">Sign Out</button>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col gap-2">
-                                        <button 
-                                            onClick={login}
-                                            className="flex items-center justify-center gap-3 w-full py-3 border border-white/20 hover:bg-white/5 text-gray-300 transition-colors"
-                                        >
-                                            <GoogleIcon size={16} />
-                                            <span className="text-xs font-bold uppercase tracking-widest">Sign in with Google</span>
-                                        </button>
-                                        <p className="text-[10px] text-gray-500 italic">
-                                            Sign in to save your progress across devices.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="h-px bg-white/50 w-full"></div>
-
-                            <div className="flex flex-col gap-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm tracking-widest">Subtitles</span>
-                                    <button 
-                                        onClick={() => setSubtitles(!subtitles)}
-                                        className={`text-xs px-3 py-1 border transition-all ${subtitles ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}
-                                    >
-                                        {subtitles ? 'ON' : 'OFF'}
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-gray-500 italic leading-relaxed">
-                                    * We recommend playing with subtitles OFF for the best immersive experience.
-                                </p>
-                            </div>
-
-                            <div className="h-px bg-white/50 w-full"></div>
-
-                            <div className="flex flex-col gap-6 items-center mt-4">
-                                <a href="#" className="text-xs text-gray-500 hover:text-white underline underline-offset-4 decoration-gray-700 transition-colors">
-                                    Privacy Policy
-                                </a>
-
-                                <button className="flex items-center gap-3 px-6 py-3 border border-yellow-700/50 text-yellow-600 hover:bg-yellow-900/10 hover:text-yellow-500 transition-all rounded-sm group">
-                                    <CoffeeIcon size={16} />
-                                    <span className="text-xs uppercase tracking-widest">Gift a Coffee</span>
-                                </button>
-                            </div>
-
-                            <div className="mt-auto pt-8 text-center">
-                                <p className="text-[10px] text-gray-700 font-mono">v0.2.0 Cloud</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {showTransition && (
-                        <div className="absolute inset-0 bg-black z-50 animate-fade-in flex items-center justify-center">
-                            <p className="text-white font-serif tracking-widest animate-pulse opacity-80">Opening Journal...</p>
-                        </div>
-                    )}
-
-                </div>
-            );
-        };
-
-        // ----------------------------------------------------------------------
-        // COMPONENT: Story Screen (Briefing)
-        // ----------------------------------------------------------------------
         const StoryScreen = ({ chapterId, onStart }) => {
             const data = CHAPTERS_DB[chapterId];
             const [visibleLines, setVisibleLines] = useState(0);
@@ -501,38 +287,21 @@
                         <h1 className="text-2xl font-serif text-gray-300 tracking-widest">{data.title}</h1>
                         <div className="w-0 h-px bg-white mx-auto mt-6 animate-expand-line"></div>
                     </div>
-
                     <div className="flex flex-col gap-6 text-center max-w-md">
                         {data.storyLines.map((line, index) => (
-                            <p key={index} className={`font-script text-lg text-[#f9f9f7] leading-relaxed transition-all duration-1000 transform ${index < visibleLines ? 'opacity-80 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                "{line}"
-                            </p>
+                            <p key={index} className={`font-script text-lg text-[#f9f9f7] leading-relaxed transition-all duration-1000 transform ${index < visibleLines ? 'opacity-80 translate-y-0' : 'opacity-0 translate-y-4'}`}>"{line}"</p>
                         ))}
                     </div>
-
                     <div className={`absolute bottom-16 transition-all duration-1000 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                        <div className="text-center mb-8">
-                            <p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{data.mission}</p>
-                        </div>
-                        <button onClick={onStart} className="w-64 py-4 border border-white/20 text-sm tracking-[0.2em] uppercase font-serif text-white cursor-pointer animate-breathe hover:bg-white/5 transition-colors">
-                            Begin Search
-                        </button>
+                        <div className="text-center mb-8"><p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{data.mission}</p></div>
+                        <button onClick={onStart} className="w-64 py-4 border border-white/20 text-sm tracking-[0.2em] uppercase font-serif text-white cursor-pointer animate-breathe hover:bg-white/5 transition-colors">Begin Search</button>
                     </div>
-                    
                     <div className="absolute inset-0 pointer-events-none opacity-20" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")'}}></div>
-                    
-                    <style>{`
-                        .animate-fade-in-long { animation: fadeIn 1.5s ease-out; }
-                        .animate-expand-line { animation: expandLine 1.5s ease-out forwards 0.5s; }
-                        .animate-breathe { animation: breathe 4s infinite ease-in-out; }
-                    `}</style>
+                    <style>{`.animate-fade-in-long { animation: fadeIn 1.5s ease-out; } .animate-expand-line { animation: expandLine 1.5s ease-out forwards 0.5s; } .animate-breathe { animation: breathe 4s infinite ease-in-out; } @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }`}</style>
                 </div>
             );
         };
 
-        // ----------------------------------------------------------------------
-        // COMPONENT: Game Screen (Dark Mode)
-        // ----------------------------------------------------------------------
         const GameScreen = ({ chapterId, onBack, onComplete }) => {
             const data = CHAPTERS_DB[chapterId];
             const [isPlaying, setIsPlaying] = useState(false);
@@ -542,10 +311,8 @@
             const [pan, setPan] = useState({ x: 0, y: 0 });
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
-            
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
-
             const containerRef = useRef(null);
             const imageRef = useRef(null);
             const isDragging = useRef(false);
@@ -553,116 +320,73 @@
             const lastPinchDistance = useRef(null);
             const lastTapTime = useRef(0);
 
-            useEffect(() => {
-                let timer;
-                if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); }
-                return () => clearTimeout(timer);
-            }, [isPlaying]);
+            useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
+            useEffect(() => { const remaining = targets.filter(t => !t.found).length; if (remaining === 0 && targets.length > 0 && !isComplete) { setIsComplete(true); } }, [targets]);
 
-            // Check completion
-            useEffect(() => {
-                const remaining = targets.filter(t => !t.found).length;
-                if (remaining === 0 && targets.length > 0 && !isComplete) {
-                    setIsComplete(true);
-                }
-            }, [targets]);
-
-            // Pan/Zoom Logic
             const updateZoom = (newZoom, center) => {
                 const clampedZoom = Math.min(Math.max(0.5, newZoom), 4);
                 const zoomFactor = clampedZoom / zoom;
                 const newPanX = center.x - (center.x - pan.x) * zoomFactor;
                 const newPanY = center.y - (center.y - pan.y) * zoomFactor;
-                setZoom(clampedZoom);
-                setPan({ x: newPanX, y: newPanY });
+                setZoom(clampedZoom); setPan({ x: newPanX, y: newPanY });
             };
-
             const handleMouseDown = (e) => { isDragging.current = true; lastPosition.current = { x: e.clientX, y: e.clientY }; };
             const handleMouseMove = (e) => {
                 if (!isDragging.current) return;
-                const dx = e.clientX - lastPosition.current.x;
-                const dy = e.clientY - lastPosition.current.y;
-                setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-                lastPosition.current = { x: e.clientX, y: e.clientY };
+                const dx = e.clientX - lastPosition.current.x; const dy = e.clientY - lastPosition.current.y;
+                setPan(prev => ({ x: prev.x + dx, y: prev.y + dy })); lastPosition.current = { x: e.clientX, y: e.clientY };
             };
             const handleMouseUp = () => { isDragging.current = false; };
             const handleWheel = (e) => {
                 e.preventDefault();
                 const rect = containerRef.current.getBoundingClientRect();
                 const center = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-                const delta = -e.deltaY * 0.001;
-                updateZoom(zoom + delta, center);
+                updateZoom(zoom + (-e.deltaY * 0.001), center);
             };
             const handleTouchStart = (e) => {
-                if (e.touches.length === 1) {
-                    isDragging.current = true;
-                    lastPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                } else if (e.touches.length === 2) {
-                    isDragging.current = false;
-                    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                    lastPinchDistance.current = dist;
-                }
+                if (e.touches.length === 1) { isDragging.current = true; lastPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
+                else if (e.touches.length === 2) { isDragging.current = false; lastPinchDistance.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
             };
             const handleTouchMove = (e) => {
                 if (e.touches.length === 1 && isDragging.current) {
-                    const dx = e.touches[0].clientX - lastPosition.current.x;
-                    const dy = e.touches[0].clientY - lastPosition.current.y;
-                    setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-                    lastPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    const dx = e.touches[0].clientX - lastPosition.current.x; const dy = e.touches[0].clientY - lastPosition.current.y;
+                    setPan(prev => ({ x: prev.x + dx, y: prev.y + dy })); lastPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
                 } else if (e.touches.length === 2 && lastPinchDistance.current) {
                     const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                     const rect = containerRef.current.getBoundingClientRect();
                     const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
                     const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-                    const zoomChange = (dist - lastPinchDistance.current) * 0.005;
-                    updateZoom(zoom + zoomChange, { x: centerX, y: centerY });
+                    updateZoom(zoom + ((dist - lastPinchDistance.current) * 0.005), { x: centerX, y: centerY });
                     lastPinchDistance.current = dist;
                 }
             };
             const handleTouchEnd = () => { isDragging.current = false; lastPinchDistance.current = null; };
-
             const handleImageClick = (e) => {
                 if (!imageRef.current || isDragging.current || lastPinchDistance.current) return;
                 const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTapTime.current;
-                if (!isDevMode && (tapLength > 300 || tapLength < 50)) { lastTapTime.current = currentTime; return; }
-                lastTapTime.current = 0; 
-                e.preventDefault();
-
+                if (!isDevMode && (currentTime - lastTapTime.current > 300 || currentTime - lastTapTime.current < 50)) { lastTapTime.current = currentTime; return; }
+                lastTapTime.current = 0; e.preventDefault();
                 const rect = imageRef.current.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
-                const xPercent = parseFloat(((clickX / rect.width) * 100).toFixed(1));
-                const yPercent = parseFloat(((clickY / rect.height) * 100).toFixed(1));
-
+                const xPercent = parseFloat((((e.clientX - rect.left) / rect.width) * 100).toFixed(1));
+                const yPercent = parseFloat((((e.clientY - rect.top) / rect.height) * 100).toFixed(1));
                 if (isDevMode) { setLastClickCoords({ x: xPercent, y: yPercent }); return; }
-
                 let hit = false;
                 const newTargets = targets.map(target => {
                     if (target.found) return target;
                     const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
-                    if (dist < target.radius) {
-                        hit = true;
-                        triggerFeedback(true, target.name);
-                        return { ...target, found: true };
-                    }
+                    if (dist < target.radius) { hit = true; triggerFeedback(true, target.name); return { ...target, found: true }; }
                     return target;
                 });
-                if (hit) setTargets(newTargets);
-                else triggerFeedback(false);
+                if (hit) setTargets(newTargets); else triggerFeedback(false);
             };
-
             const triggerFeedback = (isCorrect, name = "") => {
-                if (isCorrect) setMessage({ type: 'success', text: `Found: ${name}` });
-                else setMessage({ type: 'error', text: "Not that one..." });
+                if (isCorrect) setMessage({ type: 'success', text: `Found: ${name}` }); else setMessage({ type: 'error', text: "Not that one..." });
                 setTimeout(() => setMessage(null), 2000);
             };
-
             const remaining = targets.filter(t => !t.found).length;
 
             return (
                 <div className="flex flex-col h-[100dvh] w-full bg-[#1a1a1a] text-[#f9f9f7] overflow-hidden select-none relative animate-fade-in-game">
-                    {/* Header */}
                     <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0 landscape:hidden">
                         <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={onBack}>
                             <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">Back</span>
@@ -676,8 +400,6 @@
                             <button onClick={() => setIsBgmPlaying(!isBgmPlaying)} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">{isBgmPlaying ? <MusicNote size={20} className="text-[#f9f9f7]" /> : <MusicOff size={20} className="text-gray-600" />}</button>
                         </div>
                     </header>
-
-                    {/* Landscape HUD */}
                     <div className="hidden landscape:flex fixed right-4 top-1/2 -translate-y-1/2 flex-col gap-4 z-50 pointer-events-none">
                         <div className="bg-[#1a1a1a]/90 backdrop-blur-md p-3 rounded-2xl shadow-lg flex flex-col gap-6 items-center pointer-events-auto border border-white/10">
                             <button onClick={() => setIsPlaying(!isPlaying)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-[#f9f9f7] border border-white/20 hover:bg-white/10 ${isPlaying ? 'animate-pulse' : ''}`}>{isPlaying ? <Pause size={18} className="text-[#f9f9f7]"/> : <Play size={18} className="text-[#f9f9f7]"/>}</button>
@@ -686,8 +408,6 @@
                             <button onClick={onBack} className="text-gray-400 hover:text-white mt-2"><ArrowLeft size={20} className="text-gray-400"/></button>
                         </div>
                     </div>
-
-                    {/* Viewport */}
                     <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] cursor-grab active:cursor-grabbing game-viewport" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                         <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', willChange: 'transform' }}>
                             <div className="relative shadow-2xl" style={{ width: 'auto', height: '80vh' }}>
@@ -698,8 +418,6 @@
                         </div>
                         {isDevMode && lastClickCoords && (<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50"><div className="bg-red-500 text-white px-4 py-2 rounded shadow-lg font-mono text-xs">x: {lastClickCoords.x}, y: {lastClickCoords.y}</div></div>)}
                         {!isDevMode && message && (<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 w-full flex justify-center"><div className={`px-6 py-3 shadow-xl flex items-center gap-3 transition-all animate-fade-in-up ${message.type === 'success' ? 'bg-[#f9f9f7] text-[#1a1a1a]' : 'bg-[#333] text-white border border-white/20'}`}>{message.type === 'success' && <Sparkles size={16} fill="currentColor" />}<span className="font-serif italic text-sm tracking-wide">{message.text}</span></div></div>)}
-                        
-                        {/* Complete Overlay */}
                         {isComplete && (
                             <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-fade-in">
                                 <div className="text-center max-w-sm">
@@ -714,33 +432,108 @@
                             </div>
                         )}
                     </div>
-
-                    {/* Footer (Portrait) */}
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0 landscape:hidden">
-                        <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} className="text-[#f9f9f7]"/> : <Play size={16} className="text-[#f9f9f7]"/>}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? "Speaking..." : "Listen to order"}</span></div></button>
+                        <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? "Speaking..." : "Listen to order"}</span></div></button>
                         <button onClick={() => setIsDevMode(!isDevMode)} className={`text-[9px] font-bold px-2 py-1 rounded transition-colors ${isDevMode ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}>{isDevMode ? "DEV ON" : "DEV"}</button>
                     </footer>
-                    <style>{`
-                        .animate-fade-in-game { animation: fadeIn 1.5s ease-out; }
-                        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
-                        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                    `}</style>
+                    <style>{`.animate-fade-in-game { animation: fadeIn 1.5s ease-out; } .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
                 </div>
             );
         };
 
-        // ----------------------------------------------------------------------
-        // MAIN APP CONTROLLER
-        // ----------------------------------------------------------------------
+        const HomeScreen = ({ onNavigate, user, login, logout, clearedChapters }) => {
+            const [view, setView] = useState('main'); 
+            const [isInitialLoad, setIsInitialLoad] = useState(true);
+            const [subtitles, setSubtitles] = useState(false);
+
+            useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
+
+            const handleOpenJournal = () => {
+                const lastCleared = Math.max(0, ...clearedChapters);
+                const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
+                onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
+            };
+
+            const getGlassClass = () => isInitialLoad ? 'glass-float-container' : 'glass-float-container !animate-none !opacity-100';
+            const getFadeClass = (animClass) => isInitialLoad ? animClass : 'opacity-100';
+
+            return (
+                <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
+                    <div className={`absolute inset-0 z-0 pointer-events-none ${getFadeClass('anim-fade-in-bg')}`} style={isInitialLoad ? {animationDelay: '0s'} : {}}>
+                        <img src="https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=2400&auto=format&fit=crop" alt="Background" className="w-full h-full object-cover opacity-40 grayscale"/>
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] via-transparent to-[#1a1a1a]"></div>
+                    </div>
+                    <div className={`z-10 text-center mt-8 shrink-0 ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '1.5s'} : {}}>
+                        <p className="text-[10px] tracking-[0.4em] uppercase text-gray-400 mb-4">Audio Hidden Object Game</p>
+                        <h1 className="text-5xl md:text-7xl font-serif text-[#f9f9f7] tracking-wider mb-2">Wizper</h1>
+                        <p className="font-script text-xl text-gray-400 italic opacity-80">- The Apprentice's Log -</p>
+                    </div>
+                    <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-6">
+                        <div className="w-full flex flex-col items-center gap-6">
+                            <p className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '2.5s'} : {}}>"Listen carefully, apprentice.<br/>My eyes aren't what they used to be..."</p>
+                            <div className="w-full">
+                                <button onClick={handleOpenJournal} className={`w-full py-4 hover:bg-white/10 transition-colors text-sm tracking-[0.2em] uppercase font-serif text-[#f9f9f7] ${getGlassClass()}`} style={isInitialLoad ? {animationDelay: '2.8s'} : {}}>Open Journal</button>
+                            </div>
+                            <div className={`flex gap-4 w-full ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '3.0s'} : {}}>
+                                <button onClick={() => setView('chapters')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><BookIcon size={14} /> Log</button>
+                                <button onClick={() => setView('howto')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><EarIcon size={14} /> Guide</button>
+                            </div>
+                            <div className={`${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '3.2s'} : {}}>
+                                <button onClick={() => setView('settings')} className="mt-2 text-gray-500 hover:text-white transition-colors"><SettingsIcon size={18} /></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={`overlay-container flex flex-col ${view === 'chapters' ? 'active' : ''}`}>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Journal Log</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-4 p-8">
+                            <p className="text-xs text-gray-500 font-serif italic mb-2 text-center">Record of assigned tasks.</p>
+                            {Object.values(CHAPTERS_DB).map(chapter => {
+                                const maxCleared = Math.max(0, ...clearedChapters);
+                                const locked = chapter.id > maxCleared + (maxCleared < chapter.id ? 0 : 1);
+                                return (
+                                    <div key={chapter.id} onClick={() => !locked && onNavigate('STORY', chapter.id)} className={`p-4 border ${locked ? 'border-white/5 text-gray-600' : 'border-white/20 bg-white/5 cursor-pointer hover:bg-white/10'} transition-all`}>
+                                        <div className="flex justify-between items-start mb-1"><span className="text-[10px] uppercase tracking-widest opacity-50">Chapter {chapter.id}</span>{locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">Available</span>}</div>
+                                        <h3 className="font-serif text-lg mb-1">{chapter.title}</h3>
+                                        <p className="font-script text-sm italic opacity-60">{chapter.sub}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className={`overlay-container flex flex-col ${view === 'howto' ? 'active' : ''}`}>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Guide</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex-1 overflow-y-auto custom-scroll p-6 flex flex-col justify-start pt-12 items-center">
+                            <div className="flex flex-col gap-8 items-center text-center">
+                                <div className="max-w-xs shrink-0"><p className="text-sm text-gray-400 italic mb-2">"Find the hidden objects."</p></div>
+                                <div className="flex flex-col gap-6 w-full max-w-xs px-2">
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><EarIcon size={20} /></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Listen</h3><p className="text-xs text-gray-400 font-serif italic">Hear the voice instructions.</p></div></div>
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Search</h3><p className="text-xs text-gray-400 font-serif italic">Pinch to zoom. Swipe to pan.</p></div></div>
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Select</h3><p className="text-xs text-gray-400 font-serif italic">Double tap to collect the object.</p></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={`overlay-container flex flex-col ${view === 'settings' ? 'active' : ''}`}>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Settings</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex-1 overflow-y-auto custom-scroll p-8 flex flex-col gap-8">
+                            <div className="flex flex-col gap-3"><span className="text-sm tracking-widest mb-2">Cloud Save</span>{user ? (<div className="p-4 border border-white/10 bg-white/5 flex flex-col gap-2"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">{user.photoURL && <img src={user.photoURL} alt="User" />}</div><div><p className="text-xs text-white">{user.displayName}</p><p className="text-[10px] text-gray-400">Progress Saved</p></div></div><button onClick={logout} className="text-[10px] text-red-400 underline self-start mt-1">Sign Out</button></div>) : (<div className="flex flex-col gap-2"><button onClick={login} className="flex items-center justify-center gap-3 w-full py-3 border border-white/20 hover:bg-white/5 text-gray-300 transition-colors"><GoogleIcon size={16} /><span className="text-xs font-bold uppercase tracking-widest">Sign in with Google</span></button><p className="text-[10px] text-gray-500 italic">Sign in to save your progress across devices.</p></div>)}</div>
+                            <div className="h-px bg-white/50 w-full"></div>
+                            <div className="flex flex-col gap-3"><div className="flex justify-between items-center"><span className="text-sm tracking-widest">Subtitles</span><button onClick={() => setSubtitles(!subtitles)} className={`text-xs px-3 py-1 border transition-all ${subtitles ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{subtitles ? 'ON' : 'OFF'}</button></div><p className="text-[10px] text-gray-500 italic leading-relaxed">* We recommend playing with subtitles OFF for the best immersive experience.</p></div>
+                            <div className="h-px bg-white/50 w-full"></div>
+                            <div className="flex flex-col gap-6 items-center mt-4"><a href="#" className="text-xs text-gray-500 hover:text-white underline underline-offset-4 decoration-gray-700 transition-colors">Privacy Policy</a><button className="flex items-center gap-3 px-6 py-3 border border-yellow-700/50 text-yellow-600 hover:bg-yellow-900/10 hover:text-yellow-500 transition-all rounded-sm group"><CoffeeIcon size={16} /><span className="text-xs uppercase tracking-widest">Gift a Coffee</span></button></div>
+                            <div className="mt-auto pt-8 text-center"><p className="text-[10px] text-gray-700 font-mono">v0.2.0 Cloud</p></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const App = () => {
-            const [screen, setScreen] = useState('HOME'); // HOME, STORY, GAME
+            const [screen, setScreen] = useState('HOME');
             const [activeChapter, setActiveChapter] = useState(1);
-            
-            // Auth State
             const [user, setUser] = useState(null);
             const [clearedChapters, setClearedChapters] = useState([1]);
 
-            // Sync with Firebase
             useEffect(() => {
                 if (!auth) return;
                 const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -757,21 +550,17 @@
             const login = async () => { if(auth) await auth.signInWithPopup(googleProvider); };
             const logout = async () => { if(auth) await auth.signOut(); setClearedChapters([1]); };
 
-            // Navigation Handler
             const navigate = (targetScreen, chapterId = null) => {
                 if (chapterId) setActiveChapter(chapterId);
                 setScreen(targetScreen);
             };
 
-            // Chapter Complete Handler
             const handleChapterComplete = async (completedChapterId) => {
                 const nextChapterId = completedChapterId + 1;
                 
-                // Unlock next chapter locally
                 if (!clearedChapters.includes(nextChapterId)) {
                     const newCleared = [...clearedChapters, nextChapterId];
                     setClearedChapters(newCleared);
-                    // Sync to Cloud
                     if (user && db) {
                         try {
                             await db.collection("users").doc(user.uid).set({ clearedChapters: newCleared }, { merge: true });
@@ -779,7 +568,6 @@
                     }
                 }
 
-                // Move to next story or return home if end
                 if (CHAPTERS_DB[nextChapterId]) {
                     navigate('STORY', nextChapterId);
                 } else {
