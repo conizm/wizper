@@ -434,7 +434,7 @@
 
             return (
                 <div className="flex flex-col h-[100dvh] w-full bg-[#1a1a1a] text-[#f9f9f7] overflow-hidden select-none relative animate-fade-in-game">
-                    <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0 landscape:hidden lg:flex">
+                    <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0 max-lg:landscape:hidden">
                         <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={onBack}>
                             <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">Back</span>
                         </div>
@@ -447,7 +447,7 @@
                             <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">{bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]" /> : <MusicOff size={20} className="text-gray-600" />}</button>
                         </div>
                     </header>
-                    <div className="hidden landscape:flex lg:hidden fixed right-4 top-1/2 -translate-y-1/2 flex-col gap-4 z-50 pointer-events-none">
+                    <div className="hidden max-lg:landscape:flex fixed right-4 top-1/2 -translate-y-1/2 flex-col gap-4 z-50 pointer-events-none">
                         <div className="bg-[#1a1a1a]/90 backdrop-blur-md p-3 rounded-2xl shadow-lg flex flex-col gap-6 items-center pointer-events-auto border border-white/10">
                             <button onClick={() => setIsPlaying(!isPlaying)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-[#f9f9f7] border border-white/20 hover:bg-white/10 ${isPlaying ? 'animate-pulse' : ''}`}>{isPlaying ? <Pause size={18} className="text-[#f9f9f7]"/> : <Play size={18} className="text-[#f9f9f7]"/>}</button>
                             <button onClick={bgmControl.toggleMute} className="w-10 h-10 flex items-center justify-center opacity-80 hover:opacity-100 text-[#f9f9f7]">{bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600" />}</button>
@@ -456,10 +456,6 @@
                         </div>
                     </div>
                     
-                    <div className="hidden lg:flex fixed top-4 right-4 z-50">
-                         <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">{bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]" /> : <MusicOff size={20} className="text-gray-600" />}</button>
-                    </div>
-
                     <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] cursor-grab active:cursor-grabbing game-viewport" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                         <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', willChange: 'transform' }}>
                             <div className="relative shadow-2xl" style={{ width: 'auto', height: '80vh' }}>
@@ -484,7 +480,7 @@
                             </div>
                         )}
                     </div>
-                    <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0 landscape:hidden lg:flex">
+                    <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0 max-lg:landscape:hidden">
                         <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? "Speaking..." : "Listen to order"}</span></div></button>
                         <button onClick={() => setIsDevMode(!isDevMode)} className={`text-[9px] font-bold px-2 py-1 rounded transition-colors ${isDevMode ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}>{isDevMode ? "DEV ON" : "DEV"}</button>
                     </footer>
@@ -628,7 +624,7 @@
             const [clearedChapters, setClearedChapters] = useState([1]);
             
             // Audio States (Volume: 0.0 - 1.0)
-            const [bgmVolume, setBgmVolume] = useState(0.5);
+            const [bgmVolume, setBgmVolume] = useState(0);
             const [prevBgmVolume, setPrevBgmVolume] = useState(0.5); // For mute toggle
             const [sfxVolume, setSfxVolume] = useState(1.0);
             const [voiceVolume, setVoiceVolume] = useState(1.0);
