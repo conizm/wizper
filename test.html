@@ -219,62 +219,178 @@
             console.error("Firebase init error:", e);
         }
 
+        const TRANSLATIONS = {
+            en: {
+                appSubtitle: "- The Apprentice's Work -",
+                introText: "\"Listen carefully, apprentice.\nMy eyes aren't what they used to be...\"",
+                beginButton: "Begin Work",
+                logButton: "Log",
+                guideButton: "Guide",
+                settingsTitle: "Settings",
+                workLogTitle: "Work Log",
+                workLogDesc: "Record of assigned work.",
+                chapter: "Chapter",
+                available: "Available",
+                guideTitle: "Guide",
+                guideIntro: "\"Find the hidden objects.\"",
+                guideListenTitle: "Listen",
+                guideListenDesc: "Hear the voice instructions.",
+                guideSearchTitle: "Search",
+                guideSearchDesc: "Pinch to zoom. Swipe to pan.",
+                guideSelectTitle: "Select",
+                guideSelectDesc: "Double tap to collect the object.",
+                cloudSave: "Cloud Save",
+                signInGoogle: "Sign in with Google",
+                signInDesc: "Sign in to save your progress across devices.",
+                progressSaved: "Progress Saved",
+                signOut: "Sign Out",
+                subtitles: "Subtitles",
+                subtitlesDesc: "* We recommend playing with subtitles OFF for the best immersive experience.",
+                sound: "Sound",
+                bgm: "BGM",
+                voice: "VOICE",
+                sfx: "SFX",
+                language: "Language",
+                privacyPolicy: "Privacy Policy",
+                giftCoffee: "Gift a Coffee",
+                back: "Back",
+                itemsLeft: "Items Left",
+                complete: "Complete",
+                nextChapter: "Next Chapter",
+                speaking: "Speaking...",
+                listenOrder: "Listen to order",
+                found: "Found",
+                notFound: "Not that one...",
+                congrats: "Congratulations! You've reached the end of current content.",
+                beginSearch: "Begin Search"
+            },
+            ja: {
+                appSubtitle: "- The Apprentice's Work -",
+                introText: "「よく聞け、見習いよ。\n私の目はもう昔のようには見えん…」",
+                beginButton: "仕事にかかる",
+                logButton: "記録",
+                guideButton: "手引き",
+                settingsTitle: "設定",
+                workLogTitle: "業務記録",
+                workLogDesc: "割り当てられた仕事の記録",
+                chapter: "章",
+                available: "挑戦可能",
+                guideTitle: "手引き",
+                guideIntro: "「隠されたアイテムを見つけ出せ」",
+                guideListenTitle: "聞く",
+                guideListenDesc: "声の指示に耳を傾ける",
+                guideSearchTitle: "探す",
+                guideSearchDesc: "ピンチで拡大、スワイプで移動",
+                guideSelectTitle: "選ぶ",
+                guideSelectDesc: "ダブルタップで回収する",
+                cloudSave: "クラウドセーブ",
+                signInGoogle: "Googleでサインイン",
+                signInDesc: "進捗を保存して別端末でもプレイ",
+                progressSaved: "保存済み",
+                signOut: "サインアウト",
+                subtitles: "字幕",
+                subtitlesDesc: "* 没入感を高めるため、字幕OFFを推奨します",
+                sound: "サウンド",
+                bgm: "BGM",
+                voice: "ボイス",
+                sfx: "効果音",
+                language: "言語",
+                privacyPolicy: "プライバシーポリシー",
+                giftCoffee: "コーヒーを贈る",
+                back: "戻る",
+                itemsLeft: "残り",
+                complete: "完了",
+                nextChapter: "次の章へ",
+                speaking: "詠唱中...",
+                listenOrder: "指示を聞く",
+                found: "発見：",
+                notFound: "それではない...",
+                congrats: "おめでとう！現在のコンテンツはここまでだ。",
+                beginSearch: "調査開始"
+            }
+        };
+
         const CHAPTERS_DB = {
             1: {
                 id: 1,
                 title: "The Master's Desk",
+                title_ja: "師匠の机",
                 sub: "Study Room",
+                sub_ja: "書斎",
                 storyLines: [
-                    "Ah, there you are, apprentice.",
-                    "My desk is in utter chaos again...",
-                    "I need to finish this spell before the moon rises.",
-                    "Be my eyes, will you?"
+                    "..Magic is not just about waving wands, my apprentice.",
+                    "It is about... precision.",
+                    "This shelf holds both miracles and death, side by side.",
+                    "In each trial, you must find the one true potion hidden amongst the decoys.",
+                    "Can you distinguish the truth from the lies amidst this dust?",
+                    "[thoughtful] Let us see if you have been paying attention."
+                ],
+                storyLines_ja: [
+                    "「[chuckles]（クックッ…）錬金術とは、単に杖を振り回すことではないぞ、若いの。",
+                    "重要なのは……『正確さ』じゃ。",
+                    "この棚には奇跡と死が、隣り合わせに並んでおる。この中から、偽物に紛れた『たった一つの正解の薬瓶』を見つけ出すのじゃ。",
+                    "お主はこの埃の中で、嘘と真実を見分けることができるかな？",
+                    "どれ、手並みを拝見させてもらおうか。」"
                 ],
                 mission: "- Find 5 hidden items -",
+                mission_ja: "- 5つのアイテムを探せ -",
                 imageUrl: "https://wordrobe.cc/wizper/images/chapter_1.png",
                 script: "First, find the old key... yes, look down low. Then the strange stone, the mark, the sand, and finally the coin at the top.",
+                completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
+                completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 targets: [
-                    { id: 1, name: "Old Key", x: 29.8, y: 84.6, radius: 7, found: false },
-                    { id: 2, name: "Stone", x: 74.3, y: 48.9, radius: 7, found: false },
-                    { id: 3, name: "Mark", x: 91.5, y: 38.3, radius: 7, found: false },
-                    { id: 4, name: "Sand", x: 22.6, y: 67.1, radius: 7, found: false },
-                    { id: 5, name: "Coin", x: 24.3, y: 11.7, radius: 7, found: false },
-                ],
-                completionText: "Well done. You have keen eyes, unlike my previous apprentice..."
+                    { id: 1, name: "Old Key", name_ja: "古びた鍵", x: 29.8, y: 84.6, radius: 7, found: false },
+                    { id: 2, name: "Stone", name_ja: "石", x: 74.3, y: 48.9, radius: 7, found: false },
+                    { id: 3, name: "Mark", name_ja: "印", x: 91.5, y: 38.3, radius: 7, found: false },
+                    { id: 4, name: "Sand", name_ja: "砂", x: 22.6, y: 67.1, radius: 7, found: false },
+                    { id: 5, name: "Coin", name_ja: "コイン", x: 24.3, y: 11.7, radius: 7, found: false },
+                ]
             },
             2: {
                 id: 2,
                 title: "Greenhouse",
+                title_ja: "温室",
                 sub: "Herbs & Roots",
+                sub_ja: "薬草と根",
                 storyLines: [
                     "Be careful in here.",
                     "The Mandrakes are light sleepers.",
                     "I need ingredients for a silencing potion.",
                     "Don't break anything."
                 ],
+                storyLines_ja: [
+                    "ここでは慎重にな。",
+                    "マンドレイクは眠りが浅い。",
+                    "沈黙の薬の材料が必要なのだ。",
+                    "何も壊すなよ。"
+                ],
                 mission: "- Find 3 hidden items -",
+                mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2400&auto=format&fit=crop", 
                 script: "Find the red flower on the left, the trowel in the middle, and the watering can on the right.",
+                completionText: "Excellent work. These roots are fresh. Now, to the cauldron.",
+                completionText_ja: "素晴らしい。根も新鮮だ。さあ、大鍋へ向かうぞ。",
                 targets: [
-                    { id: 1, name: "Red Flower", x: 20, y: 50, radius: 10, found: false },
-                    { id: 2, name: "Trowel", x: 50, y: 50, radius: 10, found: false },
-                    { id: 3, name: "Watering Can", x: 80, y: 50, radius: 10, found: false }
-                ],
-                completionText: "Excellent work. These roots are fresh. Now, to the cauldron."
+                    { id: 1, name: "Red Flower", name_ja: "赤い花", x: 20, y: 50, radius: 10, found: false },
+                    { id: 2, name: "Trowel", name_ja: "コテ", x: 50, y: 50, radius: 10, found: false },
+                    { id: 3, name: "Watering Can", name_ja: "じょうろ", x: 80, y: 50, radius: 10, found: false }
+                ]
             },
             3: {
-                id: 3, title: "Midnight Market", sub: "Rare Artifacts",
+                id: 3, title: "Midnight Market", title_ja: "真夜中の市場", sub: "Rare Artifacts", sub_ja: "希少な遺物",
                 storyLines: ["The merchant is waiting.", "Find the items before he changes his mind."],
-                mission: "- Find 4 hidden items -",
+                storyLines_ja: ["商人が待っている。", "気が変わる前に品物を見つけるのだ。"],
+                mission: "- Find 4 hidden items -", mission_ja: "- 4つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=2400",
-                script: "Dummy script.", targets: [], completionText: "You are becoming useful."
+                script: "Dummy script.", targets: [], completionText: "You are becoming useful.", completionText_ja: "役に立つようになってきたな。"
             },
             4: {
-                id: 4, title: "Ritual Chamber", sub: "The Grand Spell",
+                id: 4, title: "Ritual Chamber", title_ja: "儀式の間", sub: "The Grand Spell", sub_ja: "壮大なる呪文",
                 storyLines: ["The stars align.", "Precision is everything."],
-                mission: "- Find 5 hidden items -",
+                storyLines_ja: ["星々が直列する。", "正確さが全てだ。"],
+                mission: "- Find 5 hidden items -", mission_ja: "- 5つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2400",
-                script: "Dummy script.", targets: [], completionText: "The spell is complete."
+                script: "Dummy script.", targets: [], completionText: "The spell is complete.", completionText_ja: "呪文は完成した。"
             }
         };
 
@@ -304,18 +420,22 @@
         const ArrowLeft = ({ size = 24, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>);
         const NextIcon = ({ size = 16, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
 
-        const StoryScreen = ({ chapterId, onStart, onBack, bgmControl }) => {
+        const StoryScreen = ({ chapterId, onStart, onBack, bgmControl, lang }) => {
             const data = CHAPTERS_DB[chapterId];
             const [visibleLines, setVisibleLines] = useState(0);
             const [showButton, setShowButton] = useState(false);
+            const t = TRANSLATIONS[lang];
+            const lines = lang === 'ja' ? (data.storyLines_ja || data.storyLines) : data.storyLines;
 
             useEffect(() => {
-                const timers = data.storyLines.map((_, index) => {
+                setVisibleLines(0);
+                setShowButton(false);
+                const timers = lines.map((_, index) => {
                     return setTimeout(() => setVisibleLines(prev => prev + 1), 800 * (index + 1) + 500); 
                 });
-                const btnTimer = setTimeout(() => setShowButton(true), 800 * (data.storyLines.length + 1) + 500);
+                const btnTimer = setTimeout(() => setShowButton(true), 800 * (lines.length + 1) + 500);
                 return () => { timers.forEach(clearTimeout); clearTimeout(btnTimer); };
-            }, [data]);
+            }, [data, lang, lines]);
 
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center px-8 py-12 bg-[#111] animate-fade-in-long">
@@ -326,18 +446,18 @@
                         {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                     </button>
                     <div className="absolute top-16 text-center" style={{animation: 'fadeIn 2s ease-out forwards'}}>
-                        <p className="text-[10px] tracking-[0.3em] text-gray-500 uppercase mb-2">Chapter {data.id}</p>
-                        <h1 className="text-2xl font-serif text-gray-300 tracking-widest">{data.title}</h1>
+                        <p className="text-[10px] tracking-[0.3em] text-gray-500 uppercase mb-2">{t.chapter} {data.id}</p>
+                        <h1 className="text-2xl font-serif text-gray-300 tracking-widest">{lang === 'ja' ? data.title_ja : data.title}</h1>
                         <div className="w-0 h-px bg-white mx-auto mt-6 animate-expand-line"></div>
                     </div>
                     <div className="flex flex-col gap-6 text-center max-w-md">
-                        {data.storyLines.map((line, index) => (
+                        {lines.map((line, index) => (
                             <p key={index} className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-all duration-1000 transform ${index < visibleLines ? 'opacity-80 translate-y-0' : 'opacity-0 translate-y-4'}`}>"{line}"</p>
                         ))}
                     </div>
                     <div className={`absolute bottom-16 transition-all duration-1000 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                        <div className="text-center mb-8"><p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{data.mission}</p></div>
-                        <button onClick={onStart} className="w-64 py-4 border border-white/20 text-sm tracking-[0.2em] uppercase font-serif text-white cursor-pointer animate-breathe hover:bg-white/5 transition-colors">Begin Search</button>
+                        <div className="text-center mb-8"><p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{lang === 'ja' ? data.mission_ja : data.mission}</p></div>
+                        <button onClick={onStart} className="w-64 py-4 border border-white/20 text-sm tracking-[0.2em] uppercase font-serif text-white cursor-pointer animate-breathe hover:bg-white/5 transition-colors">{t.beginSearch}</button>
                     </div>
                     <div className="absolute inset-0 pointer-events-none opacity-20" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")'}}></div>
                     <style>{`.animate-fade-in-long { animation: fadeIn 1.5s ease-out; } .animate-expand-line { animation: expandLine 1.5s ease-out forwards 0.5s; } .animate-breathe { animation: breathe 4s infinite ease-in-out; } @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }`}</style>
@@ -345,8 +465,9 @@
             );
         };
 
-        const GameScreen = ({ chapterId, onBack, onComplete, bgmControl, audioActions }) => {
+        const GameScreen = ({ chapterId, onBack, onComplete, bgmControl, audioActions, lang }) => {
             const data = CHAPTERS_DB[chapterId];
+            const t = TRANSLATIONS[lang];
             const [isPlaying, setIsPlaying] = useState(false);
             const [targets, setTargets] = useState(data.targets.map(t => ({...t}))); 
             const [zoom, setZoom] = useState(1);
@@ -416,17 +537,18 @@
                 const newTargets = targets.map(target => {
                     if (target.found) return target;
                     const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
-                    if (dist < target.radius) { hit = true; triggerFeedback(true, target.name); return { ...target, found: true }; }
+                    if (dist < target.radius) { hit = true; triggerFeedback(true, target.name, target.name_ja); return { ...target, found: true }; }
                     return target;
                 });
                 if (hit) setTargets(newTargets); else triggerFeedback(false);
             };
-            const triggerFeedback = (isCorrect, name = "") => {
+            const triggerFeedback = (isCorrect, name = "", name_ja = "") => {
                 if (isCorrect) {
-                    setMessage({ type: 'success', text: `Found: ${name}` });
+                    const dispName = lang === 'ja' && name_ja ? name_ja : name;
+                    setMessage({ type: 'success', text: `${t.found} ${dispName}` });
                     audioActions.playFound();
                 } else {
-                    setMessage({ type: 'error', text: "Not that one..." });
+                    setMessage({ type: 'error', text: t.notFound });
                 }
                 setTimeout(() => setMessage(null), 2000);
             };
@@ -436,12 +558,12 @@
                 <div className="flex flex-col h-[100dvh] w-full bg-[#1a1a1a] text-[#f9f9f7] overflow-hidden select-none relative animate-fade-in-game">
                     <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0 max-lg:landscape:hidden">
                         <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={onBack}>
-                            <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">Back</span>
+                            <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">{t.back}</span>
                         </div>
                         <div className="text-center flex flex-col items-center flex-1">
                             <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Wizper</span>
-                            <h1 className="font-serif text-lg tracking-wide font-medium text-[#f9f9f7] truncate max-w-[200px]">{data.title}</h1>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">{remaining === 0 ? "Complete" : `${remaining} Items Left`}</p>
+                            <h1 className="font-serif text-lg tracking-wide font-medium text-[#f9f9f7] truncate max-w-[200px]">{lang === 'ja' ? data.title_ja : data.title}</h1>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">{remaining === 0 ? t.complete : `${remaining} ${t.itemsLeft}`}</p>
                         </div>
                         <div className="w-20 flex justify-end">
                             <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">{bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]" /> : <MusicOff size={20} className="text-gray-600" />}</button>
@@ -460,7 +582,7 @@
                         <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', willChange: 'transform' }}>
                             <div className="relative shadow-2xl" style={{ width: 'auto', height: '80vh' }}>
                                 <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="max-h-full max-w-none object-contain pointer-events-auto" draggable={false} onClick={handleImageClick}/>
-                                {isDevMode && targets.map(t => (<div key={t.id} className="absolute border-2 border-blue-500 rounded-full bg-blue-500/20 pointer-events-none" style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.radius * 2}%`, height: `${t.radius * 2}%`, transform: 'translate(-50%, -50%)', }}><span className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-1 rounded whitespace-nowrap z-50">{t.name}</span></div>))}
+                                {isDevMode && targets.map(t => (<div key={t.id} className="absolute border-2 border-blue-500 rounded-full bg-blue-500/20 pointer-events-none" style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.radius * 2}%`, height: `${t.radius * 2}%`, transform: 'translate(-50%, -50%)', }}><span className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-1 rounded whitespace-nowrap z-50">{lang === 'ja' && t.name_ja ? t.name_ja : t.name}</span></div>))}
                                 {isDevMode && lastClickCoords && (<div className="absolute w-4 h-4 bg-red-500 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 z-50 shadow-lg border-2 border-white" style={{ left: `${lastClickCoords.x}%`, top: `${lastClickCoords.y}%` }}/>)}
                             </div>
                         </div>
@@ -469,11 +591,11 @@
                         {isComplete && (
                             <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-fade-in">
                                 <div className="text-center max-w-sm">
-                                    <h2 className="text-3xl font-serif text-[#f9f9f7] mb-2 tracking-widest">Complete</h2>
+                                    <h2 className="text-3xl font-serif text-[#f9f9f7] mb-2 tracking-widest">{t.complete}</h2>
                                     <div className="w-12 h-px bg-white/50 mx-auto mb-6"></div>
-                                    <p className="font-script text-lg text-gray-300 italic mb-10 leading-relaxed">"{data.completionText}"</p>
+                                    <p className="font-script text-lg text-gray-300 italic mb-10 leading-relaxed">"{lang === 'ja' ? data.completionText_ja : data.completionText}"</p>
                                     <button onClick={() => onComplete(chapterId)} className="group flex items-center justify-center gap-3 px-8 py-3 border border-white/30 hover:bg-white/10 transition-all rounded-sm mx-auto">
-                                        <span className="text-xs uppercase tracking-[0.2em] text-white group-hover:text-[#f9f9f7]">Next Chapter</span>
+                                        <span className="text-xs uppercase tracking-[0.2em] text-white group-hover:text-[#f9f9f7]">{t.nextChapter}</span>
                                         <NextIcon size={16} className="text-white/70 group-hover:translate-x-1 transition-transform"/>
                                     </button>
                                 </div>
@@ -481,7 +603,7 @@
                         )}
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0 max-lg:landscape:hidden">
-                        <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? "Speaking..." : "Listen to order"}</span></div></button>
+                        <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? t.speaking : t.listenOrder}</span></div></button>
                         <button onClick={() => setIsDevMode(!isDevMode)} className={`text-[9px] font-bold px-2 py-1 rounded transition-colors ${isDevMode ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}>{isDevMode ? "DEV ON" : "DEV"}</button>
                     </footer>
                     <style>{`.animate-fade-in-game { animation: fadeIn 1.5s ease-out; } .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
@@ -489,9 +611,10 @@
             );
         };
 
-        const HomeScreen = ({ onNavigate, user, login, logout, clearedChapters, bgmControl, audioActions, settingsControl }) => {
+        const HomeScreen = ({ onNavigate, user, login, logout, clearedChapters, bgmControl, audioActions, settingsControl, lang }) => {
             const [view, setView] = useState('main'); 
             const [isInitialLoad, setIsInitialLoad] = useState(true);
+            const t = TRANSLATIONS[lang];
 
             useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
 
@@ -525,17 +648,17 @@
                     <div className={`z-10 text-center mt-8 shrink-0 ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '1.5s'} : {}}>
                         <p className="text-[10px] tracking-[0.4em] uppercase text-gray-400 mb-4">Audio Hidden Object Game</p>
                         <h1 className="text-5xl md:text-7xl font-serif text-[#f9f9f7] tracking-wider mb-2">Wizper</h1>
-                        <p className="font-script text-xl text-gray-400 italic opacity-80">- The Apprentice's Work -</p>
+                        <p className="font-script text-xl text-gray-400 italic opacity-80">{TRANSLATIONS['en'].appSubtitle}</p>
                     </div>
                     <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-6">
                         <div className="w-full flex flex-col items-center gap-6">
-                            <p className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '2.5s'} : {}}>"Listen carefully, apprentice.<br/>My eyes aren't what they used to be..."</p>
+                            <p className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '2.5s'} : {}}>{t.introText.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)}</p>
                             <div className="w-full">
-                                <button onClick={handleOpenJournal} className={`w-full py-4 hover:bg-white/10 transition-colors text-sm tracking-[0.2em] uppercase font-serif text-[#f9f9f7] ${getGlassClass()}`} style={isInitialLoad ? {animationDelay: '2.8s'} : {}}>Begin Work</button>
+                                <button onClick={handleOpenJournal} className={`w-full py-4 hover:bg-white/10 transition-colors text-sm tracking-[0.2em] uppercase font-serif text-[#f9f9f7] ${getGlassClass()}`} style={isInitialLoad ? {animationDelay: '2.8s'} : {}}>{t.beginButton}</button>
                             </div>
                             <div className={`flex gap-4 w-full ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '3.0s'} : {}}>
-                                <button onClick={() => handleViewChange('chapters')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><BookIcon size={14} /> Log</button>
-                                <button onClick={() => handleViewChange('howto')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><EarIcon size={14} /> Guide</button>
+                                <button onClick={() => handleViewChange('chapters')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><BookIcon size={14} /> {t.logButton}</button>
+                                <button onClick={() => handleViewChange('howto')} className="flex-1 py-3 border border-white/10 hover:bg-white/5 transition-colors text-xs tracking-widest uppercase flex justify-center items-center gap-2"><EarIcon size={14} /> {t.guideButton}</button>
                             </div>
                             <div className={`${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '3.2s'} : {}}>
                                 <button onClick={() => handleViewChange('settings')} className="mt-2 text-gray-500 hover:text-white transition-colors"><SettingsIcon size={18} /></button>
@@ -543,72 +666,82 @@
                         </div>
                     </div>
                     <div className={`overlay-container flex flex-col ${view === 'chapters' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Work Log</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">{t.workLogTitle}</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
                         <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-4 p-8">
-                            <p className="text-xs text-gray-500 font-serif italic mb-2 text-center">Record of assigned work.</p>
+                            <p className="text-xs text-gray-500 font-serif italic mb-2 text-center">{t.workLogDesc}</p>
                             {Object.values(CHAPTERS_DB).map(chapter => {
                                 const maxCleared = Math.max(0, ...clearedChapters);
                                 const locked = chapter.id > maxCleared + (maxCleared < chapter.id ? 0 : 1);
                                 return (
                                     <div key={chapter.id} onClick={() => !locked && onNavigate('STORY', chapter.id)} className={`p-4 border ${locked ? 'border-white/5 text-gray-600' : 'border-white/20 bg-white/5 cursor-pointer hover:bg-white/10'} transition-all`}>
-                                        <div className="flex justify-between items-start mb-1"><span className="text-[10px] uppercase tracking-widest opacity-50">Chapter {chapter.id}</span>{locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">Available</span>}</div>
-                                        <h3 className="font-serif text-lg mb-1">{chapter.title}</h3>
-                                        <p className="font-script text-sm italic opacity-60">{chapter.sub}</p>
+                                        <div className="flex justify-between items-start mb-1"><span className="text-[10px] uppercase tracking-widest opacity-50">{t.chapter} {chapter.id}</span>{locked ? <LockIcon size={12}/> : <span className="text-[10px] text-gray-400">{t.available}</span>}</div>
+                                        <h3 className="font-serif text-lg mb-1">{lang === 'ja' ? chapter.title_ja : chapter.title}</h3>
+                                        <p className="font-script text-sm italic opacity-60">{lang === 'ja' ? chapter.sub_ja : chapter.sub}</p>
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
                     <div className={`overlay-container flex flex-col ${view === 'howto' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Guide</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">{t.guideTitle}</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
                         <div className="flex-1 overflow-y-auto custom-scroll p-6 flex flex-col justify-start pt-12 items-center">
                             <div className="flex flex-col gap-8 items-center text-center">
-                                <div className="max-w-xs shrink-0"><p className="text-sm text-gray-400 italic mb-2">"Find the hidden objects."</p></div>
+                                <div className="max-w-xs shrink-0"><p className="text-sm text-gray-400 italic mb-2">{t.guideIntro}</p></div>
                                 <div className="flex flex-col gap-6 w-full max-w-xs px-2">
-                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><EarIcon size={20} /></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Listen</h3><p className="text-xs text-gray-400 font-serif italic">Hear the voice instructions.</p></div></div>
-                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Search</h3><p className="text-xs text-gray-400 font-serif italic">Pinch to zoom. Swipe to pan.</p></div></div>
-                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">Select</h3><p className="text-xs text-gray-400 font-serif italic">Double tap to collect the object.</p></div></div>
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><EarIcon size={20} /></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">{t.guideListenTitle}</h3><p className="text-xs text-gray-400 font-serif italic">{t.guideListenDesc}</p></div></div>
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">{t.guideSearchTitle}</h3><p className="text-xs text-gray-400 font-serif italic">{t.guideSearchDesc}</p></div></div>
+                                    <div className="flex items-center gap-5 text-left"><div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div><div><h3 className="text-xs font-bold uppercase tracking-widest mb-1">{t.guideSelectTitle}</h3><p className="text-xs text-gray-400 font-serif italic">{t.guideSelectDesc}</p></div></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className={`overlay-container flex flex-col ${view === 'settings' ? 'active' : ''}`}>
-                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">Settings</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
+                        <div className="flex justify-between items-center px-8 pb-4 border-b border-white/10 shrink-0"><h2 className="text-lg font-serif tracking-widest">{t.settingsTitle}</h2><button onClick={() => setView('main')} className="text-xs uppercase tracking-widest text-gray-400 p-2">Close</button></div>
                         <div className="flex-1 overflow-y-auto custom-scroll p-8 flex flex-col gap-8">
-                            <div className="flex flex-col gap-3"><span className="text-sm tracking-widest mb-2">Cloud Save</span>{user ? (<div className="p-4 border border-white/10 bg-white/5 flex flex-col gap-2"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">{user.photoURL && <img src={user.photoURL} alt="User" />}</div><div><p className="text-xs text-white">{user.displayName}</p><p className="text-[10px] text-gray-400">Progress Saved</p></div></div><button onClick={logout} className="text-[10px] text-red-400 underline self-start mt-1">Sign Out</button></div>) : (<div className="flex flex-col gap-2"><button onClick={login} className="flex items-center justify-center gap-3 w-full py-3 border border-white/20 hover:bg-white/5 text-gray-300 transition-colors"><GoogleIcon size={16} /><span className="text-xs font-bold uppercase tracking-widest">Sign in with Google</span></button><p className="text-[10px] text-gray-500 italic">Sign in to save your progress across devices.</p></div>)}</div>
-                            <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60"></div>
                             
                             <div className="flex flex-col gap-3">
+                                <span className="text-sm tracking-widest">{t.language}</span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => settingsControl.setLanguage('en')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>English</button>
+                                    <button onClick={() => settingsControl.setLanguage('ja')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>日本語</button>
+                                </div>
+                                <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm tracking-widest">Subtitles</span>
+                                    <span className="text-sm tracking-widest">{t.subtitles}</span>
                                     <button onClick={settingsControl.toggleSubtitles} className={`text-xs w-16 py-1 border transition-all text-center ${settingsControl.subtitles ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{settingsControl.subtitles ? 'ON' : 'OFF'}</button>
                                 </div>
-                                <p className="text-[10px] text-gray-500 italic leading-relaxed">* We recommend playing with subtitles OFF for the best immersive experience.</p>
+                                <p className="text-[10px] text-gray-500 italic leading-relaxed">{t.subtitlesDesc}</p>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
                             </div>
 
                             <div className="flex flex-col gap-4 mt-2">
-                                <span className="text-sm tracking-widest text-left">Sound</span>
+                                <span className="text-sm tracking-widest text-left">{t.sound}</span>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex justify-center items-center gap-6">
-                                        <span className="text-sm text-gray-300 w-12 text-right">BGM</span>
-                                        <input type="range" min="0" max="1" step="0.01" value={bgmControl.bgmVolume} onChange={(e) => bgmControl.setBgmVolume(parseFloat(e.target.value))} />
+                                        <span className="text-sm text-gray-300 w-12 text-right">{t.bgm}</span>
+                                        <input type="range" min="0" max="1" step="0.01" value={bgmControl.bgmVolume} onChange={(e) => bgmControl.setBgmVolume(parseFloat(e.target.value))} className="w-16 accent-white cursor-pointer"/>
                                     </div>
                                     <div className="flex justify-center items-center gap-6">
-                                        <span className="text-sm text-gray-300 w-12 text-right">VOICE</span>
-                                        <input type="range" min="0" max="1" step="0.01" value={settingsControl.voiceVolume} onChange={(e) => settingsControl.setVoiceVolume(parseFloat(e.target.value))} />
+                                        <span className="text-sm text-gray-300 w-12 text-right">{t.voice}</span>
+                                        <input type="range" min="0" max="1" step="0.01" value={settingsControl.voiceVolume} onChange={(e) => settingsControl.setVoiceVolume(parseFloat(e.target.value))} className="w-16 accent-white cursor-pointer"/>
                                     </div>
                                     <div className="flex justify-center items-center gap-6">
-                                        <span className="text-sm text-gray-300 w-12 text-right">SFX</span>
-                                        <input type="range" min="0" max="1" step="0.01" value={settingsControl.sfxVolume} onChange={(e) => settingsControl.setSfxVolume(parseFloat(e.target.value))} />
+                                        <span className="text-sm text-gray-300 w-12 text-right">{t.sfx}</span>
+                                        <input type="range" min="0" max="1" step="0.01" value={settingsControl.sfxVolume} onChange={(e) => settingsControl.setSfxVolume(parseFloat(e.target.value))} className="w-16 accent-white cursor-pointer"/>
                                     </div>
                                 </div>
                             </div>
                             <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60"></div>
+
+                            <div className="flex flex-col gap-3"><span className="text-sm tracking-widest mb-2">{t.cloudSave}</span>{user ? (<div className="p-4 border border-white/10 bg-white/5 flex flex-col gap-2"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">{user.photoURL && <img src={user.photoURL} alt="User" />}</div><div><p className="text-xs text-white">{user.displayName}</p><p className="text-[10px] text-gray-400">{t.progressSaved}</p></div></div><button onClick={logout} className="text-[10px] text-red-400 underline self-start mt-1">{t.signOut}</button></div>) : (<div className="flex flex-col gap-2"><button onClick={login} className="flex items-center justify-center gap-3 w-full py-3 border border-white/20 hover:bg-white/5 text-gray-300 transition-colors"><GoogleIcon size={16} /><span className="text-xs font-bold uppercase tracking-widest">{t.signInGoogle}</span></button><p className="text-[10px] text-gray-500 italic">{t.signInDesc}</p></div>)}</div>
+                            <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60"></div>
                             
                             <div className="mt-auto flex flex-col gap-6 items-center pt-8">
-                                <a href="#" className="text-xs text-gray-500 hover:text-white underline underline-offset-4 decoration-gray-700 transition-colors">Privacy Policy</a>
-                                <button className="flex items-center gap-3 px-6 py-3 border border-yellow-700/50 text-yellow-600 hover:bg-yellow-900/10 hover:text-yellow-500 transition-all rounded-sm group"><CoffeeIcon size={16} /><span className="text-xs uppercase tracking-widest">Gift a Coffee</span></button>
+                                <a href="#" className="text-xs text-gray-500 hover:text-white underline underline-offset-4 decoration-gray-700 transition-colors">{t.privacyPolicy}</a>
+                                <button className="flex items-center gap-3 px-6 py-3 border border-yellow-700/50 text-yellow-600 hover:bg-yellow-900/10 hover:text-yellow-500 transition-all rounded-sm group"><CoffeeIcon size={16} /><span className="text-xs uppercase tracking-widest">{t.giftCoffee}</span></button>
                             </div>
                             <div className="mb-safe text-center mt-4"><p className="text-[10px] text-gray-700 font-mono">v.1.0.0</p></div>
                         </div>
@@ -623,12 +756,12 @@
             const [user, setUser] = useState(null);
             const [clearedChapters, setClearedChapters] = useState([1]);
             
-            // Audio States (Volume: 0.0 - 1.0)
             const [bgmVolume, setBgmVolume] = useState(0);
-            const [prevBgmVolume, setPrevBgmVolume] = useState(0.5); // For mute toggle
+            const [prevBgmVolume, setPrevBgmVolume] = useState(0.5); 
             const [sfxVolume, setSfxVolume] = useState(1.0);
             const [voiceVolume, setVoiceVolume] = useState(1.0);
             const [subtitles, setSubtitles] = useState(false);
+            const [language, setLanguage] = useState('en');
             
             const homeBgmRef = useRef(new Audio('music/school-of-magic.mp3'));
             const gameBgmRef = useRef(new Audio('music/the-mischievous-wizard.mp3'));
@@ -636,6 +769,9 @@
             const sfxClick2 = useRef(new Audio('music/click2.mp3'));
             const sfxFound = useRef(new Audio('music/found.mp3'));
             const sfxComplete = useRef(new Audio('music/complete.mp3'));
+            const testVoiceRef = useRef(new Audio('music/testvoice.mp3'));
+            const lastVoiceTestTime = useRef(0);
+            const lastSfxTestTime = useRef(0);
 
             useEffect(() => {
                 homeBgmRef.current.loop = true;
@@ -646,7 +782,6 @@
                 };
             }, []);
 
-            // Handle immediate volume change for active BGM
             useEffect(() => {
                 if (screen === 'HOME' || screen === 'STORY') {
                    if (!homeBgmRef.current.paused) homeBgmRef.current.volume = bgmVolume;
@@ -662,7 +797,6 @@
                 let fadeTimer;
                 let delayTimer;
                 
-                // If BGM is muted/off (volume 0), pause everything
                 if (bgmVolume <= 0) {
                     homeBgmRef.current.pause();
                     gameBgmRef.current.pause();
@@ -670,7 +804,6 @@
                 }
 
                 if (screen === 'HOME' || screen === 'STORY') {
-                    // Fade OUT Game BGM if playing
                     if (gameBgmRef.current.paused === false) {
                         let vol = gameBgmRef.current.volume;
                         const fadeOut = setInterval(() => {
@@ -684,7 +817,6 @@
                         }, interval);
                     }
                     
-                    // Fade IN Home BGM if paused
                     if (homeBgmRef.current.paused) {
                         homeBgmRef.current.volume = 0;
                         homeBgmRef.current.play().catch(e => console.log("Auto-play prevented", e));
@@ -696,7 +828,6 @@
                         }, interval);
                     }
                 } else if (screen === 'GAME') {
-                    // Fade OUT Home BGM
                     if (homeBgmRef.current.paused === false) {
                         let vol = homeBgmRef.current.volume;
                         const fadeOut = setInterval(() => {
@@ -710,7 +841,6 @@
                         }, interval);
                     }
 
-                    // Fade IN Game BGM
                     if (gameBgmRef.current.paused) {
                         delayTimer = setTimeout(() => {
                             gameBgmRef.current.volume = 0;
@@ -814,17 +944,44 @@
                 toggleMute
             };
             
+            const handleVoiceChange = (vol) => {
+                setVoiceVolume(vol);
+                const now = Date.now();
+                if (now - lastVoiceTestTime.current > 200) { 
+                    if (vol > 0) {
+                        testVoiceRef.current.volume = vol;
+                        testVoiceRef.current.currentTime = 0;
+                        testVoiceRef.current.play().catch(()=>{});
+                    }
+                    lastVoiceTestTime.current = now;
+                }
+            };
+
+            const handleSfxChange = (vol) => {
+                setSfxVolume(vol);
+                const now = Date.now();
+                if (now - lastSfxTestTime.current > 200) { 
+                    if (vol > 0) {
+                        sfxClick2.current.volume = vol; 
+                        sfxClick2.current.currentTime = 0;
+                        sfxClick2.current.play().catch(()=>{});
+                    }
+                    lastSfxTestTime.current = now;
+                }
+            };
+
             const settingsControl = {
-                sfxVolume, setSfxVolume,
-                voiceVolume, setVoiceVolume,
-                subtitles, toggleSubtitles: () => setSubtitles(!subtitles)
+                sfxVolume, setSfxVolume: handleSfxChange,
+                voiceVolume, setVoiceVolume: handleVoiceChange,
+                subtitles, toggleSubtitles: () => setSubtitles(!subtitles),
+                setLanguage: setLanguage
             };
 
             return (
                 <>
-                    {screen === 'HOME' && <HomeScreen onNavigate={navigate} user={user} login={login} logout={logout} clearedChapters={clearedChapters} bgmControl={bgmControl} audioActions={audioActions} settingsControl={settingsControl} />}
-                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} bgmControl={bgmControl} />}
-                    {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} bgmControl={bgmControl} audioActions={audioActions} />}
+                    {screen === 'HOME' && <HomeScreen onNavigate={navigate} user={user} login={login} logout={logout} clearedChapters={clearedChapters} bgmControl={bgmControl} audioActions={audioActions} settingsControl={settingsControl} lang={language} />}
+                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} bgmControl={bgmControl} lang={language} />}
+                    {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} bgmControl={bgmControl} audioActions={audioActions} lang={language} />}
                 </>
             );
         };
