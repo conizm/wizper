@@ -496,7 +496,7 @@
             useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
 
             const handleOpenJournal = () => {
-                audioActions.playClick2();
+                audioActions.playClick();
                 const lastCleared = Math.max(0, ...clearedChapters);
                 const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
                 onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
