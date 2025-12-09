@@ -179,6 +179,18 @@
             border: none;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
         }
+        
+        /* Accordion transition */
+        .accordion-content {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-content.open {
+            max-height: 500px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -384,7 +396,8 @@
                             "まずはその「沈黙の棚」を見つけ出すのじゃ。",
                             "見つけたら……その棚にある『茶色の封蝋』で封じられた瓶を持ってこい。",
                             "それだけが、ワシの求める真実じゃ。"
-                        ]
+                        ],
+                        durations: [6000, 7000, 4000, 8000, 5000] // Added for Chapter 1 Q1
                     },
                     { 
                         id: 2, 
@@ -580,7 +593,7 @@
                 clearAllTimeouts();
 
                 const fadeDuration = 500;
-                const chapter1Durations = [6000, 7000, 4000, 8000, 5000];
+                const chapter1Durations = [6000, 4000, 5000, 7000];
 
                 let accumulatedTime = 0;
 
@@ -620,7 +633,7 @@
                     </button>
                     <div className="absolute top-6 right-6 z-50">
                         <button onClick={bgmControl.toggleMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
-                            {masterMute ? <SpeakerOff size={20} className="text-gray-600"/> : <Speaker size={20} className="text-[#f9f9f7]"/>}
+                            {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                         </button>
                     </div>
                     <div className="absolute top-16 text-center" style={{animation: 'fadeIn 2s ease-out forwards'}}>
@@ -662,6 +675,7 @@
             const [pan, setPan] = useState({ x: 0, y: 0 });
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
+            const [showNotes, setShowNotes] = useState(false);
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
             const currentTarget = targets[currentTargetIndex];
@@ -720,9 +734,12 @@
                         setCurrentSubtitle("");
 
                         let accumulatedTime = 0;
+                        const defaultDurations = [4000, 4000, 4000, 4000, 4000];
+                        const durations = currentTarget.durations || defaultDurations;
+
                         subs.forEach((text, i) => {
                             const showTime = accumulatedTime;
-                            const duration = 4000; 
+                            const duration = durations[i] || 4000; 
                             
                             const t1 = setTimeout(() => setCurrentSubtitle(text), showTime);
                             subtitleTimeouts.current.push(t1);
@@ -811,25 +828,16 @@
                             <h1 className="font-serif text-lg tracking-wide font-medium text-[#f9f9f7] truncate max-w-[200px]">{lang === 'ja' ? data.title_ja : data.title}</h1>
                             <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">{remaining === 0 ? t.complete : `${remaining} ${t.itemsLeft}`}</p>
                         </div>
-                        <div className="w-20 flex justify-end gap-2 items-center">
-                            {/* PC Voice Toggle in Header */}
-                            <button onClick={toggleGameLangMode} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white hidden lg:block text-xs font-serif border border-white/20 rounded px-2">
-                                {gameLangMode === 'off' ? 'OFF' : (gameLangMode === 'en' ? 'EN' : 'JP')}
-                            </button>
-                            {/* PC Music Toggle in Header */}
-                            <button onClick={audioActions.toggleMasterMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white hidden lg:block">
-                                {masterMute ? <SpeakerOff size={20} className="text-gray-600"/> : <Speaker size={20} className="text-[#f9f9f7]"/>}
-                            </button>
-                        </div>
+                        <div className="w-20"></div>
                     </header>
                     
-                    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center">
-                        <div className="relative shadow-2xl" style={{ height: '80vh', width: 'auto' }}>
-                            <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="h-full w-auto object-contain pointer-events-auto" draggable={false} onClick={handleImageClick}/>
+                    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center p-4">
+                        <div className="relative shadow-2xl h-full w-full flex items-center justify-center">
+                            <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="max-h-full max-w-full object-contain pointer-events-auto" draggable={false} onClick={handleImageClick}/>
                         </div>
                         
                         {!message && currentSubtitle && (
-                            <div className="absolute bottom-24 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
+                            <div className="absolute bottom-20 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
                                 <div className="bg-black/60 text-[#f9f9f7] px-4 py-2 rounded text-xs font-serif tracking-wide text-center leading-relaxed backdrop-blur-sm">
                                     {currentSubtitle}
                                 </div>
@@ -845,15 +853,23 @@
                                     <div className="w-12 h-px bg-white/50 mx-auto mb-6"></div>
                                     <p className="font-script text-lg text-gray-300 italic mb-8 leading-relaxed">"{lang === 'ja' ? data.completionText_ja : data.completionText}"</p>
                                     
-                                    <div className="bg-white/5 border border-white/10 p-6 rounded-sm mb-8 text-left">
-                                        <h3 className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-4 text-center">{t.notesTitle}</h3>
-                                        <div className="flex flex-col gap-3">
-                                            {TIPS[chapterId]?.map((tip, i) => (
-                                                <div key={i} className="flex justify-between text-sm border-b border-white/5 pb-2 last:border-0">
-                                                    <span className="font-serif text-[#f9f9f7]">{tip.en}</span>
-                                                    <span className="text-gray-400 text-xs">{tip.ja}</span>
-                                                </div>
-                                            ))}
+                                    <div className="bg-white/5 border border-white/10 rounded-sm mb-8 text-left overflow-hidden">
+                                        <button 
+                                            onClick={() => setShowNotes(!showNotes)} 
+                                            className="w-full p-4 flex justify-between items-center text-xs uppercase tracking-[0.2em] text-gray-400 hover:bg-white/5 transition-colors"
+                                        >
+                                            <span>{t.notesTitle}</span>
+                                            <span>{showNotes ? '−' : '+'}</span>
+                                        </button>
+                                        <div className={`accordion-content ${showNotes ? 'open' : ''}`}>
+                                            <div className="p-6 pt-0 flex flex-col gap-3">
+                                                {TIPS[chapterId]?.map((tip, i) => (
+                                                    <div key={i} className="flex justify-between text-sm border-b border-white/5 pb-2 last:border-0">
+                                                        <span className="font-serif text-[#f9f9f7]">{tip.en}</span>
+                                                        <span className="text-gray-400 text-xs">{tip.ja}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -885,12 +901,12 @@
                         
                         <div className="flex items-center gap-4">
                             {/* Mobile: Voice Toggle in Footer */}
-                            <button onClick={toggleGameLangMode} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white lg:hidden text-[10px] font-serif border border-white/20 rounded px-2 w-10 text-center">
+                            <button onClick={toggleGameLangMode} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white hidden text-[10px] font-serif border border-white/20 rounded px-2 w-10 text-center">
                                 {gameLangMode === 'off' ? 'OFF' : (gameLangMode === 'en' ? 'EN' : 'JP')}
                             </button>
-                            {/* Mobile & PC: Music Toggle in Footer */}
-                            <button onClick={audioActions.toggleMasterMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white lg:hidden">
-                                {masterMute ? <SpeakerOff size={20} className="text-gray-600"/> : <Speaker size={20} className="text-[#f9f9f7]"/>}
+                            
+                            <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                                {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
                         </div>
                     </footer>
@@ -924,8 +940,8 @@
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
                     <div className="absolute top-6 right-6 z-50">
-                        <button onClick={toggleMasterMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
-                             {masterMute ? <SpeakerOff size={20} className="text-gray-600"/> : <Speaker size={20} className="text-[#f9f9f7]"/>}
+                        <button onClick={bgmControl.toggleMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
+                             {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                         </button>
                     </div>
 
@@ -1059,11 +1075,14 @@
             const [masterMute, setMasterMute] = useState(true);
             const [bgmVolume, setBgmVolume] = useState(0.5); 
             const [sfxVolume, setSfxVolume] = useState(1.0);
-            const [voiceVolume, setVoiceVolume] = useState(1.0); 
             
+            const [voiceVolume, setVoiceVolume] = useState(1.0); 
+            const [prevVoiceVolume, setPrevVoiceVolume] = useState(1.0); 
+
+            const [subtitles, setSubtitles] = useState(false);
+            const [language, setLanguage] = useState('en');
             const [voiceLang, setVoiceLang] = useState('en');
             const [subLang, setSubLang] = useState('en');
-            const [language, setLanguage] = useState('en');
             
             const homeBgmRef = useRef(new Audio('music/school-of-magic.mp3'));
             const gameBgmRef = useRef(new Audio('music/the-mischievous-wizard.mp3'));
@@ -1085,18 +1104,18 @@
             }, []);
 
             useEffect(() => {
-                const effBgm = masterMute ? 0 : bgmVolume;
+                const effBgm = bgmVolume;
                 
                 if (screen === 'HOME' || screen === 'STORY') {
                    if (screen === 'STORY') {
-                       if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm * 0.66;
+                       if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm;
                    } else {
                        if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm;
                    }
                 } else if (screen === 'GAME') {
-                   if (!gameBgmRef.current.paused) gameBgmRef.current.volume = effBgm * 0.33; 
+                   if (!gameBgmRef.current.paused) gameBgmRef.current.volume = effBgm * 0.15; 
                 }
-            }, [bgmVolume, masterMute, screen]);
+            }, [bgmVolume, screen]);
 
             useEffect(() => {
                 const fadeDuration = 1000;
@@ -1104,7 +1123,7 @@
                 const interval = fadeDuration / steps;
                 let fadeTimer;
                 
-                const effBgm = masterMute ? 0 : bgmVolume;
+                const effBgm = bgmVolume;
 
                 if (effBgm <= 0) {
                     homeBgmRef.current.pause();
@@ -1112,16 +1131,14 @@
                     return;
                 }
 
-                if (screen === 'HOME' || screen === 'STORY') {
+                if (screen === 'HOME') {
                     gameBgmRef.current.pause();
-                    
-                    if (homeBgmRef.current.paused) {
-                        homeBgmRef.current.currentTime = 0;
+                     if (homeBgmRef.current.paused) {
                         homeBgmRef.current.volume = 0;
                         homeBgmRef.current.play().catch(e => console.log("Auto-play prevented", e));
                         
                         let vol = 0;
-                        const targetVol = screen === 'STORY' ? effBgm * 0.66 : effBgm;
+                        const targetVol = effBgm;
                         
                         fadeTimer = setInterval(() => {
                             vol = Math.min(targetVol, vol + (targetVol/steps));
@@ -1129,8 +1146,15 @@
                             if (vol >= targetVol) clearInterval(fadeTimer);
                         }, interval);
                     } else {
-                        homeBgmRef.current.volume = screen === 'STORY' ? effBgm * 0.66 : effBgm;
+                        homeBgmRef.current.volume = effBgm;
                     }
+                } else if (screen === 'STORY') {
+                    // Reset and play from start for Story
+                    gameBgmRef.current.pause();
+                    homeBgmRef.current.currentTime = 0;
+                    homeBgmRef.current.volume = effBgm;
+                    homeBgmRef.current.play().catch(e => console.log("Story BGM play prevented", e));
+
                 } else if (screen === 'GAME') {
                     homeBgmRef.current.pause();
 
@@ -1139,7 +1163,7 @@
                         gameBgmRef.current.volume = 0;
                         gameBgmRef.current.play().catch(e => console.log("Auto-play prevented", e));
                         let vol = 0;
-                        const targetVol = effBgm * 0.33;
+                        const targetVol = effBgm * 0.15;
                         fadeTimer = setInterval(() => {
                             vol = Math.min(targetVol, vol + (targetVol/steps));
                             gameBgmRef.current.volume = vol;
@@ -1151,10 +1175,10 @@
                 return () => {
                     clearInterval(fadeTimer);
                 };
-            }, [screen, bgmVolume, masterMute]); 
+            }, [screen, bgmVolume]); 
 
             const playSfx = (type) => {
-                if (sfxVolume <= 0 || masterMute) return;
+                if (sfxVolume <= 0) return;
                 let audio = null;
                 if (type === 'click') audio = sfxClick.current;
                 else if (type === 'click2') audio = sfxClick2.current;
@@ -1168,7 +1192,14 @@
                 }
             };
 
-            const toggleMasterMute = () => setMasterMute(!masterMute); 
+            const toggleMasterMute = () => {
+                if (bgmVolume > 0) {
+                     // Mute behavior for BGM icon
+                    setBgmVolume(0);
+                } else {
+                    setBgmVolume(0.5);
+                }
+            };
 
             const toggleMute = () => {
                 if (bgmVolume > 0) {
@@ -1252,7 +1283,7 @@
                 setVoiceVolume: (vol) => {
                     setVoiceVolume(vol);
                     const now = Date.now();
-                    if (now - lastVoiceTestTime.current > 200 && !masterMute) { 
+                    if (now - lastVoiceTestTime.current > 200) { 
                         if (vol > 0) {
                             testVoiceRef.current.volume = vol;
                             testVoiceRef.current.currentTime = 0;
@@ -1267,7 +1298,7 @@
             const handleSfxChange = (vol) => {
                 setSfxVolume(vol);
                 const now = Date.now();
-                if (now - lastSfxTestTime.current > 200 && !masterMute) { 
+                if (now - lastSfxTestTime.current > 200) { 
                     if (vol > 0) {
                         sfxClick2.current.volume = vol; 
                         sfxClick2.current.currentTime = 0;
