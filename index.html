@@ -191,6 +191,15 @@
             max-height: 500px;
             opacity: 1;
         }
+
+        /* Checkmark Style */
+        .check-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
+            color: #4ade80; /* green-400 */
+        }
     </style>
 </head>
 <body>
@@ -371,7 +380,7 @@
                 ],
                 mission: "- Find 3 hidden items -",
                 mission_ja: "- 3つのアイテムを探せ -",
-                imageUrl: "https://conizm.github.io/wizper/images/c1photo.png",
+                imageUrl: "https://conizm.github.io/wizper/images/c1photo_0.png",
                 script: "First, find the old key... yes, look down low. Then the strange stone, the mark, the sand, and finally the coin at the top.",
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
@@ -397,7 +406,7 @@
                             "見つけたら……その棚にある『茶色の封蝋』で封じられた瓶を持ってこい。",
                             "それだけが、ワシの求める真実じゃ。"
                         ],
-                        durations: [6000, 7000, 4000, 8000, 5000] // Added for Chapter 1 Q1
+                        durations: [6000, 7000, 4000, 8000, 5000]
                     },
                     { 
                         id: 2, 
@@ -521,9 +530,11 @@
         const MicOff = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>);
         const RefreshIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>);
         const LangIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>);
+        const SubtitleIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="12" y2="13"/></svg>);
         const Sparkles = ({ size = 24, fill="currentColor" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="none"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>);
         const ArrowLeft = ({ size = 24, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>);
         const NextIcon = ({ size = 16, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
+        const CheckIcon = ({ className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`check-icon ${className}`}><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd"/></svg>);
 
         // Preload Audio globally
         const audioCache = {};
@@ -668,14 +679,14 @@
             const data = CHAPTERS_DB[chapterId];
             const t = TRANSLATIONS[lang];
             
-            // Game State
-            const [isPlaying, setIsPlaying] = useState(false); // Controls Voice Playback
+            const [isPlaying, setIsPlaying] = useState(false); 
             const [targets, setTargets] = useState(data.targets.map(t => ({...t}))); 
             const [zoom, setZoom] = useState(1);
             const [pan, setPan] = useState({ x: 0, y: 0 });
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
             const [showNotes, setShowNotes] = useState(false);
+            const [showSettings, setShowSettings] = useState(false);
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
             const currentTarget = targets[currentTargetIndex];
@@ -683,25 +694,11 @@
             const [currentSubtitle, setCurrentSubtitle] = useState("");
             const subtitleTimeouts = useRef([]);
 
-            const [gameLangMode, setGameLangMode] = useState('en'); 
-            
-            useEffect(() => {
-                if (voiceLang === 'ja' || subLang === 'ja') setGameLangMode('ja');
-                else if (voiceLang === 'off' && subLang === 'off') setGameLangMode('off');
-                else setGameLangMode('en');
-            }, []);
-
-            const toggleGameLangMode = () => {
-                setGameLangMode(prev => {
-                    if (prev === 'off') return 'en';
-                    if (prev === 'en') return 'ja';
-                    return 'off';
-                });
-            };
-
             const containerRef = useRef(null);
             const imageRef = useRef(null);
 
+            useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
+            
             // Voice Playback Logic
             useEffect(() => {
                 if (!currentTarget || !currentTarget.voice) return;
@@ -714,7 +711,21 @@
             }, [currentTargetIndex, chapterId]); 
 
             const handlePlayPause = () => {
-                if (masterMute || gameLangMode === 'off') return;
+                if (masterMute || settingsControl.voiceLang === 'off') {
+                    if (settingsControl.voiceLang === 'off') {
+                         // User wants to play but voice is OFF. Maybe force enable temporarily or do nothing?
+                         // Prompt says "adjust to play". Let's force it on for this interaction if user explicitly clicks play.
+                         settingsControl.setVoiceLang('en'); // Auto switch to English to play?
+                         // Re-trigger play in next render or force play now?
+                         // Better UX: Just play if masterMute is false, treating 'off' as 'en' temporarily?
+                         // No, let's respect 'off' but assume user wants to hear it now.
+                         // Let's just switch voiceLang to 'en' and play.
+                         // But we can't await state update easily here.
+                         // Let's just proceed to play logic and ensure volume is up.
+                    } else {
+                        return; // Master mute is on
+                    }
+                }
 
                 if (isPlaying) {
                     gameVoiceRef.current.pause();
@@ -727,8 +738,11 @@
                     gameVoiceRef.current.play().catch(e => console.log("Play error", e));
                     setIsPlaying(true);
                     
-                    if (currentTarget.subtitles_en || currentTarget.subtitles_ja) {
-                        const subs = gameLangMode === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
+                    // Subtitles Logic
+                    const showSubs = settingsControl.subLang !== 'off';
+                    
+                    if (showSubs && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
+                        const subs = settingsControl.subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
                         subtitleTimeouts.current.forEach(clearTimeout);
                         subtitleTimeouts.current = [];
                         setCurrentSubtitle("");
@@ -752,6 +766,11 @@
                             setIsPlaying(false); 
                         }, accumulatedTime);
                         subtitleTimeouts.current.push(tEnd);
+                    } else {
+                         // If no subtitles or disabled, still stop playing state eventually?
+                         // We rely on audio 'ended' event or approximation.
+                         // Let's add an 'ended' listener to ref
+                         gameVoiceRef.current.onended = () => setIsPlaying(false);
                     }
                 }
             };
@@ -831,9 +850,9 @@
                         <div className="w-20"></div>
                     </header>
                     
-                    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center p-4">
-                        <div className="relative shadow-2xl h-full w-full flex items-center justify-center">
-                            <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="max-h-full max-w-full object-contain pointer-events-auto" draggable={false} onClick={handleImageClick}/>
+                    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center">
+                        <div className="relative shadow-2xl w-full h-full">
+                           <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="w-full h-full object-cover lg:object-contain pointer-events-auto" draggable={false} onClick={handleImageClick}/>
                         </div>
                         
                         {!message && currentSubtitle && (
@@ -886,11 +905,50 @@
                                 </div>
                             </div>
                         )}
+                        
+                        {showSettings && (
+                            <div className="absolute bottom-20 left-4 z-50 bg-[#1a1a1a]/95 border border-white/10 rounded-lg p-4 shadow-xl text-xs backdrop-blur-md w-64">
+                                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <span className="font-serif tracking-widest text-gray-400">Settings</span>
+                                    <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-white">✕</button>
+                                </div>
+                                
+                                <div className="mb-4">
+                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => settingsControl.setVoiceLang('off')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
+                                        </button>
+                                        <button onClick={() => settingsControl.setVoiceLang('en')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
+                                        </button>
+                                        <button onClick={() => settingsControl.setVoiceLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => settingsControl.setSubLang('off')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
+                                        </button>
+                                        <button onClick={() => settingsControl.setSubLang('en')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
+                                        </button>
+                                        <button onClick={() => settingsControl.setSubLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0">
                         {/* Play/Pause Button - Plays current Voice */}
-                        <button onClick={handlePlayPause} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete || gameLangMode === 'off'}>
-                            <div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'} ${gameLangMode === 'off' ? 'opacity-50' : ''}`}>
+                        <button onClick={handlePlayPause} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete}>
+                            <div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'} ${settingsControl.voiceLang === 'off' ? 'opacity-50' : ''}`}>
                                 {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
                             </div>
                             <div className="flex flex-col text-left">
@@ -900,9 +958,9 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
-                            {/* Mobile: Voice Toggle in Footer */}
-                            <button onClick={toggleGameLangMode} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white hidden text-[10px] font-serif border border-white/20 rounded px-2 w-10 text-center">
-                                {gameLangMode === 'off' ? 'OFF' : (gameLangMode === 'en' ? 'EN' : 'JP')}
+                            {/* New Settings Toggle */}
+                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
                             </button>
                             
                             <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
@@ -1082,7 +1140,7 @@
             const [subtitles, setSubtitles] = useState(false);
             const [language, setLanguage] = useState('en');
             const [voiceLang, setVoiceLang] = useState('en');
-            const [subLang, setSubLang] = useState('en');
+            const [subLang, setSubLang] = useState('off');
             
             const homeBgmRef = useRef(new Audio('music/school-of-magic.mp3'));
             const gameBgmRef = useRef(new Audio('music/the-mischievous-wizard.mp3'));
@@ -1149,7 +1207,6 @@
                         homeBgmRef.current.volume = effBgm;
                     }
                 } else if (screen === 'STORY') {
-                    // Reset and play from start for Story
                     gameBgmRef.current.pause();
                     homeBgmRef.current.currentTime = 0;
                     homeBgmRef.current.volume = effBgm;
@@ -1194,7 +1251,6 @@
 
             const toggleMasterMute = () => {
                 if (bgmVolume > 0) {
-                     // Mute behavior for BGM icon
                     setBgmVolume(0);
                 } else {
                     setBgmVolume(0.5);
@@ -1314,7 +1370,8 @@
                 setVoiceVolume: voiceControl.setVoiceVolume,
                 setLanguage: setLanguage,
                 voiceLang, setVoiceLang,
-                subLang, setSubLang
+                subLang, setSubLang,
+                setSubLang
             };
 
             return (
