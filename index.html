@@ -259,7 +259,7 @@
                 nextChapter: "Next Chapter",
                 speaking: "Speaking...",
                 listenOrder: "Listen to order",
-                found: "Found",
+                found: "You got it!",
                 notFound: "Not that one...",
                 congrats: "Congratulations! You've reached the end of current content.",
                 beginSearch: "Begin Search",
@@ -304,7 +304,7 @@
                 nextChapter: "次の章へ",
                 speaking: "詠唱中...",
                 listenOrder: "指示を聞く",
-                found: "発見：",
+                found: "正解！",
                 notFound: "それではない...",
                 congrats: "おめでとう！現在のコンテンツはここまでだ。",
                 beginSearch: "調査開始",
@@ -333,18 +333,79 @@
                     "ワシの指示をよく聞き、 『正解の薬』だけを持ってくるんじゃぞ。",
                     "心してかかれ。 間違った瓶を選べば……大惨事じゃ。"
                 ],
-                mission: "- Find 5 hidden items -",
-                mission_ja: "- 5つのアイテムを探せ -",
+                mission: "- Find 3 hidden items -",
+                mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://conizm.github.io/wizper/images/c1photo.png",
                 script: "First, find the old key... yes, look down low. Then the strange stone, the mark, the sand, and finally the coin at the top.",
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 targets: [
-                    { id: 1, name: "Old Key", name_ja: "古びた鍵", x: 29.8, y: 84.6, radius: 7, found: false },
-                    { id: 2, name: "Stone", name_ja: "石", x: 74.3, y: 48.9, radius: 7, found: false },
-                    { id: 3, name: "Mark", name_ja: "印", x: 91.5, y: 38.3, radius: 7, found: false },
-                    { id: 4, name: "Sand", name_ja: "砂", x: 22.6, y: 67.1, radius: 7, found: false },
-                    { id: 5, name: "Coin", name_ja: "コイン", x: 24.3, y: 11.7, radius: 7, found: false },
+                    { 
+                        id: 1, 
+                        name: "bottle1", 
+                        x: 48.5, y: 59.6, radius: 7, 
+                        found: false,
+                        voice: "voice/c1/c1-q1.mp3",
+                        subtitles_en: [
+                            "...Your first trial.Observe the shelves closely.",
+                            "Burlap covers many jars here... but there is... one shelf...",
+                            "that is completely naked... devoid of any burlap lids.",
+                            "Find that... silent shelf.",
+                            "Once you have found it... bring me the vial sealed with... Brown Wax.",
+                            "That... is the only truth I seek."
+                        ],
+                        subtitles_ja: [
+                            "最初の試練じゃ。棚をよく見るがいい。",
+                            "ここには麻布で覆われた瓶が多いが……『麻布の蓋が一つもない棚』が、たった一段だけある。",
+                            "まずはその「沈黙の棚」を見つけ出すのじゃ。",
+                            "見つけたら……その棚にある『茶色の封蝋』で封じられた瓶を持ってこい。",
+                            "それだけが、ワシの求める真実じゃ。"
+                        ]
+                    },
+                    { 
+                        id: 2, 
+                        name: "bottle2", 
+                        x: 34.9, y: 37.6, radius: 7, 
+                        found: false,
+                        voice: "voice/c1/c1-q2.mp3",
+                        subtitles_en: [
+                            "Numbers never lie, my Apprentice.",
+                            "Count the vials containing Blue Liquid in the entire cabinet.",
+                            "That number tells you exactly which shelf to look at. From top to bottom.",
+                            "Have you found the shelf?",
+                            "Then, ignore the colors. Just bring me the one bottle on that shelf covered in Burlap.",
+                            "Simple...is it not?"
+                        ],
+                        subtitles_ja: [
+                            "数字は嘘をつかないぞ、若いの。 この棚全体にある、『青い液体の瓶』を数えるのじゃ。",
+                            "その数が……正解の瓶がある『段』を示しておる。上から順にな。",
+                            "棚はわかったか？",
+                            "ならば色は忘れて、その棚にある『麻布』で蓋をされた瓶を取ってこい。",
+                            "……単純なことじゃろう？"
+                        ]
+                    },
+                    { 
+                        id: 3, 
+                        name: "bottle3", 
+                        x: 73.9, y: 60.8, radius: 7, 
+                        found: false,
+                        voice: "voice/c1/c1-q3.mp3",
+                        subtitles_en: [
+                            "The final test. A journey for your finger.",
+                            "Start at the very top shelf on the far left bottle... with the Red Wax.",
+                            "Now... move Right by the total number of Burlap lids in the cabinet. Are you there?",
+                            "Good. Now drop Down by the total number of Blue potions.",
+                            "Take the bottle your finger landed on. Do not hesitate."
+                        ],
+                        subtitles_ja: [
+                            "最後の試練じゃ。指を使って旅をするがよい。",
+                            "スタートは、一番上の段……その左端にある『赤い封蝋の瓶』じゃ。",
+                            "そこから『右』へ移動せよ。進む数は……棚全体にある『麻布の蓋』の数だけじゃ。 ……進んだか？",
+                            "では、そこから『真下』へ落ちよ。落ちる段数は……",
+                            "棚全体にある『青い液体』の数だけ下へ。",
+                            "……指が止まった場所にある、その瓶を取るのじゃ。迷うでないぞ。"
+                        ]
+                    },
                 ]
             },
             2: {
@@ -535,9 +596,9 @@
                         {!showButton && (
                             <button 
                                 onClick={handleSkip} 
-                                className="absolute -bottom-8 right-0 text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors"
+                                className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors"
                             >
-                                {t.skip} &gt;&gt;
+                                {t.skip}
                             </button>
                         )}
                     </div>
@@ -551,7 +612,7 @@
             );
         };
 
-        const GameScreen = ({ chapterId, onBack, onComplete, bgmControl, voiceControl, audioActions, lang }) => {
+        const GameScreen = ({ chapterId, onBack, onComplete, bgmControl, voiceControl, audioActions, lang, settingsControl }) => {
             const data = CHAPTERS_DB[chapterId];
             const t = TRANSLATIONS[lang];
             const [isPlaying, setIsPlaying] = useState(false);
@@ -562,6 +623,13 @@
             const [isComplete, setIsComplete] = useState(false);
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
+            
+            const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
+            const currentTarget = targets[currentTargetIndex];
+            const gameVoiceRef = useRef(new Audio());
+            const [currentSubtitle, setCurrentSubtitle] = useState("");
+            const subtitleTimeouts = useRef([]);
+
             const containerRef = useRef(null);
             const imageRef = useRef(null);
             const isDragging = useRef(false);
@@ -570,7 +638,52 @@
             const lastTapTime = useRef(0);
 
             useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
-            useEffect(() => { const remaining = targets.filter(t => !t.found).length; if (remaining === 0 && targets.length > 0 && !isComplete) { setIsComplete(true); audioActions.playComplete(); } }, [targets]);
+            
+            // Audio & Subtitle Logic
+            useEffect(() => {
+                if (!currentTarget || !currentTarget.voice) return;
+                
+                // Play Voice
+                gameVoiceRef.current.src = currentTarget.voice;
+                gameVoiceRef.current.volume = voiceControl.voiceVolume;
+                if (voiceControl.voiceVolume > 0) {
+                    gameVoiceRef.current.play().catch(e => console.log("Game voice autoplay prevented", e));
+                    setIsPlaying(true);
+                }
+
+                // Show Subtitles if enabled
+                if (settingsControl.subtitles && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
+                    const subs = lang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
+                    // Reset
+                    subtitleTimeouts.current.forEach(clearTimeout);
+                    subtitleTimeouts.current = [];
+                    setCurrentSubtitle("");
+
+                    let accumulatedTime = 0;
+                    subs.forEach((text, i) => {
+                        const showTime = accumulatedTime;
+                        const duration = 4000; // Approx read time per line
+                        
+                        const t1 = setTimeout(() => setCurrentSubtitle(text), showTime);
+                        subtitleTimeouts.current.push(t1);
+                        
+                        accumulatedTime += duration;
+                    });
+                    
+                    const clearTime = accumulatedTime;
+                    const tEnd = setTimeout(() => setCurrentSubtitle(""), clearTime);
+                    subtitleTimeouts.current.push(tEnd);
+                }
+
+                return () => {
+                    gameVoiceRef.current.pause();
+                    subtitleTimeouts.current.forEach(clearTimeout);
+                };
+            }, [currentTargetIndex, chapterId]); // Re-run when target changes
+
+            useEffect(() => {
+                gameVoiceRef.current.volume = voiceControl.voiceVolume;
+            }, [voiceControl.voiceVolume]);
 
             const updateZoom = (newZoom, center) => {
                 const clampedZoom = Math.min(Math.max(0.5, newZoom), 4);
@@ -619,19 +732,40 @@
                 const xPercent = parseFloat((((e.clientX - rect.left) / rect.width) * 100).toFixed(1));
                 const yPercent = parseFloat((((e.clientY - rect.top) / rect.height) * 100).toFixed(1));
                 if (isDevMode) { setLastClickCoords({ x: xPercent, y: yPercent }); return; }
-                let hit = false;
-                const newTargets = targets.map(target => {
-                    if (target.found) return target;
-                    const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
-                    if (dist < target.radius) { hit = true; triggerFeedback(true, target.name, target.name_ja); return { ...target, found: true }; }
-                    return target;
-                });
-                if (hit) setTargets(newTargets); else triggerFeedback(false);
+                
+                if (isComplete) return;
+
+                // Check only current target
+                const target = targets[currentTargetIndex];
+                if (!target) return;
+
+                const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
+                if (dist < target.radius) {
+                    // Found!
+                    triggerFeedback(true);
+                    
+                    const newTargets = [...targets];
+                    newTargets[currentTargetIndex].found = true;
+                    setTargets(newTargets);
+
+                    if (currentTargetIndex < targets.length - 1) {
+                        setTimeout(() => {
+                            setCurrentTargetIndex(prev => prev + 1);
+                        }, 1500);
+                    } else {
+                        setTimeout(() => {
+                            setIsComplete(true);
+                            audioActions.playComplete();
+                        }, 1500);
+                    }
+                } else {
+                    triggerFeedback(false);
+                }
             };
-            const triggerFeedback = (isCorrect, name = "", name_ja = "") => {
+            
+            const triggerFeedback = (isCorrect) => {
                 if (isCorrect) {
-                    const dispName = lang === 'ja' && name_ja ? name_ja : name;
-                    setMessage({ type: 'success', text: `${t.found} ${dispName}` });
+                    setMessage({ type: 'success', text: t.found });
                     audioActions.playFound();
                 } else {
                     setMessage({ type: 'error', text: t.notFound });
@@ -678,6 +812,13 @@
                         </div>
                         {isDevMode && lastClickCoords && (<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50"><div className="bg-red-500 text-white px-4 py-2 rounded shadow-lg font-mono text-xs">x: {lastClickCoords.x}, y: {lastClickCoords.y}</div></div>)}
                         {!isDevMode && message && (<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 w-full flex justify-center"><div className={`px-6 py-3 shadow-xl flex items-center gap-3 transition-all animate-fade-in-up ${message.type === 'success' ? 'bg-[#f9f9f7] text-[#1a1a1a]' : 'bg-[#333] text-white border border-white/20'}`}>{message.type === 'success' && <Sparkles size={16} fill="currentColor" />}<span className="font-serif italic text-sm tracking-wide">{message.text}</span></div></div>)}
+                        {currentSubtitle && (
+                            <div className="absolute bottom-28 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
+                                <div className="bg-black/60 text-[#f9f9f7] px-4 py-2 rounded text-xs font-serif tracking-wide text-center leading-relaxed backdrop-blur-sm">
+                                    {currentSubtitle}
+                                </div>
+                            </div>
+                        )}
                         {isComplete && (
                             <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-fade-in">
                                 <div className="text-center max-w-sm">
@@ -694,7 +835,15 @@
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0 max-lg:landscape:hidden">
                         <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`}><div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'}`}>{isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</div><div className="flex flex-col text-left"><span className="text-[10px] uppercase tracking-widest text-gray-500">The Master</span><span className="font-serif text-sm italic">{isPlaying ? t.speaking : t.listenOrder}</span></div></button>
-                        <button onClick={() => setIsDevMode(!isDevMode)} className={`text-[9px] font-bold px-2 py-1 rounded transition-colors ${isDevMode ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}>{isDevMode ? "DEV ON" : "DEV"}</button>
+                        <div className="flex items-center gap-4">
+                            <button onClick={voiceControl.toggleVoiceMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white lg:hidden">
+                                {voiceControl.voiceVolume > 0 ? <Mic size={20} className="text-[#f9f9f7]"/> : <MicOff size={20} className="text-gray-600"/>}
+                            </button>
+                            <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white lg:hidden">
+                                {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
+                            </button>
+                            <button onClick={() => setIsDevMode(!isDevMode)} className={`text-[9px] font-bold px-2 py-1 rounded transition-colors hidden lg:inline ${isDevMode ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}>{isDevMode ? "DEV ON" : "DEV"}</button>
+                        </div>
                     </footer>
                     <style>{`.animate-fade-in-game { animation: fadeIn 1.5s ease-out; } .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
                 </div>
@@ -1091,7 +1240,7 @@
                 <>
                     {screen === 'HOME' && <HomeScreen onNavigate={navigate} user={user} login={login} logout={logout} clearedChapters={clearedChapters} bgmControl={bgmControl} voiceControl={voiceControl} audioActions={audioActions} settingsControl={settingsControl} lang={language} />}
                     {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} bgmControl={bgmControl} voiceControl={voiceControl} lang={language} />}
-                    {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} bgmControl={bgmControl} voiceControl={voiceControl} audioActions={audioActions} lang={language} />}
+                    {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} bgmControl={bgmControl} voiceControl={voiceControl} audioActions={audioActions} lang={language} settingsControl={settingsControl} />}
                 </>
             );
         };
