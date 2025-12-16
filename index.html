@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase (互換性維持のため残していますが、このコードでは認証ロジックはモックまたはエラーハンドリングされています) -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -87,8 +87,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- Firebase Config Mock ---
-        // 実際のキーがないためエラーにならないようtry-catchで囲んでいます
         const FIREBASE_CONFIG = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -109,7 +107,6 @@
             }
         } catch (e) { console.error("Firebase init error (Ignored for demo):", e); }
 
-        // --- Audio Preload ---
         const PRELOAD_AUDIO = [
             'music/click2.mp3', 'music/found.mp3', 'music/complete.mp3',
             'voice/voice-focus.mp3', 'voice/voice-careful.mp3'
@@ -125,7 +122,6 @@
         };
         PRELOAD_AUDIO.forEach(url => getAudio(url));
 
-        // --- Translations ---
         const TRANSLATIONS = {
             en: {
                 appSubtitle: "- The Apprentice's Work -",
@@ -195,24 +191,24 @@
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 targets: [
                     { 
-                        id: 1, name: "bottle1", x: 51.4, y: 60.7, radius: 7, found: false,
-                        voice: "voice/c1/c1-q1.mp3",
-                        voice_ja: "voice/c1/c1-q1_ja.mp3", 
+                        id: 1, name: "bottle1", x: 51, y: 60, radius: 7, found: false,
+                        voice: "voice/c1-q1-en.mp3",
+                        voice_ja: "voice/c1-q1-jp.mp3", 
                         subtitles_en: [ "...Your first trial. Observe the shelves closely.", "Burlap covers many jars here... but there is... one shelf...", "that is completely naked... devoid of any burlap lids.", "Find that... silent shelf.", "Once you have found it... bring me the vial sealed with... Brown Wax.", "That... is the only truth I seek." ],
                         subtitles_ja: [ "最初の試練じゃ。棚をよく見るがいい。", "ここには麻布で覆われた瓶が多いが……『麻布の蓋が一つもない棚』が、たった一段だけある。", "まずはその「沈黙の棚」を見つけ出すのじゃ。", "見つけたら……その棚にある『茶色の封蝋』で封じられた瓶を持ってこい。", "それだけが、ワシの求める真実じゃ。" ],
                         durations: [6000, 7000, 4000, 8000, 5000]
                     },
                     { 
-                        id: 2, name: "bottle2", x: 30.7, y: 38.3, radius: 7, found: false,
-                        voice: "voice/c1/c1-q2.mp3",
-                        voice_ja: "voice/c1/c1-q2_ja.mp3",
+                        id: 2, name: "bottle2", x: 38.5, y: 38.3, radius: 7, found: false,
+                        voice: "voice/c1-q2-en.mp3",
+                        voice_ja: "voice/c1-q2-jp.mp3",
                         subtitles_en: [ "Numbers never lie, my Apprentice.", "Count the vials containing Blue Liquid in the entire cabinet.", "That number tells you exactly which shelf to look at. From top to bottom.", "Have you found the shelf?", "Then, ignore the colors. Just bring me the one bottle on that shelf covered in Burlap.", "Simple...is it not?" ],
                         subtitles_ja: [ "数字は嘘をつかないぞ、若いの。 この棚全体にある、『青い液体の瓶』を数えるのじゃ。", "その数が……正解の瓶がある『段』を示しておる。上から順にな。", "棚はわかったか？", "ならば色は忘れて、その棚にある『麻布』で蓋をされた瓶を取ってこい。", "……単純なことじゃろう？" ]
                     },
                     { 
-                        id: 3, name: "bottle3", x: 89.1, y: 58.4, radius: 7, found: false,
-                        voice: "voice/c1/c1-q3.mp3",
-                        voice_ja: "voice/c1/c1-q3_ja.mp3",
+                        id: 3, name: "bottle3", x: 75.5, y: 62.3, radius: 7, found: false,
+                        voice: "voice/c1-q3-en.mp3",
+                        voice_ja: "voice/c1-q3-jp.mp3",
                         subtitles_en: [ "The final test. A journey for your finger.", "Start at the very top shelf on the far left bottle... with the Red Wax.", "Now... move Right by the total number of Burlap lids in the cabinet. Are you there?", "Good. Now drop Down by the total number of Blue potions.", "Take the bottle your finger landed on. Do not hesitate." ],
                         subtitles_ja: [ "最後の試練じゃ。指を使って旅をするがよい。", "スタートは、一番上の段……その左端にある『赤い封蝋の瓶』じゃ。", "そこから『右』へ移動せよ。進む数は……棚全体にある『麻布の蓋』の数だけじゃ。 ……進んだか？", "では、そこから『真下』へ落ちよ。落ちる段数は……", "棚全体にある『青い液体』の数だけ下へ。", "……指が止まった場所にある、その瓶を取るのじゃ。迷うでないぞ。" ]
                     }
@@ -249,8 +245,7 @@
             }
         };
 
-        // --- Icons ---
-        const SettingsIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+        const SettingsIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
         const BookIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
         const LockIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
         const EarIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0v5"/><path d="M18 19a3 3 0 0 1-6 0v-2h6v2z"/><path d="M6 19v-2h6"/></svg>;
@@ -274,29 +269,31 @@
             const [currentLineIndex, setCurrentLineIndex] = useState(0);
             const [fade, setFade] = useState(true);
             const [showButton, setShowButton] = useState(false);
-            const storyVoiceRef = useRef(new Audio('voice/c1/story.mp3'));
+            const storyVoiceRef = useRef(new Audio(voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3'));
             const activeTimeouts = useRef([]);
 
             useEffect(() => {
-                const vol = masterMute ? 0 : 1.0; 
-                storyVoiceRef.current.volume = vol;
-                
-                if (chapterId === 1 && !masterMute && voiceLang !== 'off') {
+                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
+                if (storyVoiceRef.current.src !== new URL(src, window.location.href).href) {
+                    storyVoiceRef.current.src = src;
+                }
+
+                if (chapterId === 1 && voiceLang !== 'off') {
                     storyVoiceRef.current.currentTime = 0;
                     storyVoiceRef.current.play().catch(e => {});
                 }
                 return () => { storyVoiceRef.current.pause(); };
-            }, [chapterId, masterMute, voiceLang]);
+            }, [chapterId, voiceLang]);
 
             useEffect(() => {
                 if (chapterId === 1) {
-                    if (voiceControl.voiceVolume > 0 && !masterMute) {
+                    if (voiceControl.voiceVolume > 0) {
                         storyVoiceRef.current.volume = voiceControl.voiceVolume;
                     } else {
-                        storyVoiceRef.current.pause();
+                        storyVoiceRef.current.volume = 0;
                     }
                 }
-            }, [voiceControl.voiceVolume, chapterId, masterMute]);
+            }, [voiceControl.voiceVolume, chapterId]);
 
             const clearAllTimeouts = () => {
                 activeTimeouts.current.forEach(clearTimeout);
@@ -405,7 +402,6 @@
 
             const imageRef = useRef(null);
 
-            // Visibility Change Handler (Stop all audio on background) inside GameScreen
             useEffect(() => {
                 const handleVisibilityChange = () => {
                     if (document.hidden) {
@@ -420,7 +416,6 @@
 
             useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
             
-            // Voice Playback Logic
             useEffect(() => {
                 if (!currentTarget) return;
                 
@@ -430,10 +425,7 @@
                 gameVoiceRef.current.src = voiceSrc;
                 setIsPlaying(false); 
 
-                // Auto play if not first load and not complete
-                // Changed logic: Always autoplay current target if voice enabled
-                if (!isComplete && !masterMute && voiceLang !== 'off') {
-                     // Slightly delay to ensure ref src is ready or state settled
+                if (!isComplete && voiceLang !== 'off') {
                      setTimeout(() => handlePlayPause(true), 100);
                 }
 
@@ -489,39 +481,28 @@
                 }
             };
 
-            useEffect(() => {
-                if (masterMute) {
-                    gameVoiceRef.current.pause();
-                    setIsPlaying(false);
-                }
-            }, [masterMute]);
-
             const handleImageClick = (e) => {
                 const img = imageRef.current;
                 if (!img) return;
                 const rect = img.getBoundingClientRect();
                 
-                // Calculate scale and offsets to handle object-cover cropping (centering 1:1)
                 const naturalRatio = img.naturalWidth / img.naturalHeight;
                 const visibleRatio = rect.width / rect.height;
                 
                 let renderWidth, renderHeight, offsetX, offsetY;
 
                 if (visibleRatio > naturalRatio) {
-                    // Container wider: Image fits width, crops height
                     renderWidth = rect.width;
                     renderHeight = rect.width / naturalRatio;
                     offsetX = 0;
                     offsetY = (rect.height - renderHeight) / 2;
                 } else {
-                    // Container taller: Image fits height, crops width
                     renderHeight = rect.height;
                     renderWidth = rect.height * naturalRatio;
                     offsetY = 0;
                     offsetX = (rect.width - renderWidth) / 2;
                 }
 
-                // Coordinate relative to the rendered image (including cropped parts)
                 const xInImage = e.clientX - rect.left - offsetX;
                 const yInImage = e.clientY - rect.top - offsetY;
 
@@ -544,13 +525,11 @@
                     newTargets[currentTargetIndex].found = true;
                     setTargets(newTargets);
 
-                    // Stop current voice immediately on success
                     gameVoiceRef.current.pause();
                     setIsPlaying(false);
                     subtitleTimeouts.current.forEach(clearTimeout);
                     setCurrentSubtitle("");
 
-                    // Check if this was the last item
                     if (currentTargetIndex < targets.length - 1) {
                         setTimeout(() => {
                             setCurrentTargetIndex(prev => prev + 1);
@@ -572,7 +551,6 @@
                     audioActions.playFound();
                 } else {
                     setMessage({ type: 'error', text: t.notFound });
-                    // audioActions.playIncorrect(); // REMOVED: No sound on incorrect answer
                 }
                 setTimeout(() => setMessage(null), 2000);
             };
@@ -603,7 +581,6 @@
                            {isDevMode && lastClickCoords && (<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50"><div className="bg-red-500 text-white px-4 py-2 rounded shadow-lg font-mono text-xs">x: {lastClickCoords.x}, y: {lastClickCoords.y}</div></div>)}
                         </div>
                         
-                        {/* Subtitle moved to bottom-4 */}
                         {!message && currentSubtitle && (
                             <div className="absolute bottom-4 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
                                 <div className="bg-black/60 text-[#f9f9f7] px-4 py-2 rounded text-xs font-serif tracking-wide text-center leading-relaxed backdrop-blur-sm">
@@ -1064,7 +1041,7 @@
                 playClick2: () => playSfx('click2'),
                 playFound: () => playSfx('found'),
                 playComplete: () => playSfx('complete'),
-                playIncorrect: () => {}, // Incorrect sound disabled
+                playIncorrect: () => {}, 
                 toggleMasterMute: toggleMasterMute 
             };
 
