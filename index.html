@@ -342,106 +342,90 @@
 
         const StoryScreen = ({ chapterId, onStart, onBack, masterMute, bgmControl, voiceLang, voiceControl, lang, t, subLang }) => {
             const data = CHAPTERS_DB[chapterId];
-            
             const [currentText, setCurrentText] = useState("");
             const [fade, setFade] = useState(true);
             const [showButton, setShowButton] = useState(false);
             const storyVoiceRef = useRef(new Audio());
-            const [isPlaying, setIsPlaying] = useState(false);
-            const [playFailed, setPlayFailed] = useState(false);
+            const timeoutRefs = useRef([]);
 
+            // Audio Setup
             useEffect(() => {
                 const audio = storyVoiceRef.current;
-                const targetSrc = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
+                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
+                audio.src = src;
+                audio.volume = (masterMute || voiceLang === 'off') ? 0 : voiceControl.voiceVolume;
                 
-                // Only update src if changed
-                if (!audio.src || !audio.src.includes(targetSrc)) {
-                    audio.src = targetSrc;
-                    // Removed automatic load() to prevent resetting state if not needed
-                }
-
-                const handleTimeUpdate = () => {
-                    const currentTime = audio.currentTime;
-                    const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
-                    
-                    if (subtitles) {
-                        const currentSubtitle = subtitles.find(s => currentTime >= s.start && currentTime < s.end);
-                        if (currentSubtitle) {
-                            const text = (subLang === 'ja') ? currentSubtitle.text_jp : currentSubtitle.text_en;
-                            if (currentText !== text) {
-                                setFade(false);
-                                setTimeout(() => {
-                                    setCurrentText(text);
-                                    setFade(true);
-                                }, 200);
-                            }
-                        }
-                    }
-                    
-                    if (audio.ended || (audio.duration > 0 && currentTime >= audio.duration - 0.5)) {
-                        setShowButton(true);
-                    }
-                };
-                
-                const handleEnded = () => {
-                    setIsPlaying(false);
-                    setShowButton(true);
-                };
-
-                audio.addEventListener('timeupdate', handleTimeUpdate);
-                audio.addEventListener('ended', handleEnded);
-
-                // Attempt play if conditions met
-                if (chapterId === 1 && voiceLang !== 'off' && !masterMute) {
-                    const playPromise = audio.play();
-                    if (playPromise !== undefined) {
-                        playPromise
-                            .then(() => {
-                                setIsPlaying(true);
-                                setPlayFailed(false);
-                            })
-                            .catch(error => {
-                                console.log("Autoplay prevented:", error);
-                                setIsPlaying(false);
-                                setPlayFailed(true);
-                            });
-                    }
-                } else if (voiceLang === 'off') {
-                     // No voice logic, show skip/start button immediately
-                     if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
-                     setShowButton(true);
+                if (voiceLang !== 'off' && !masterMute) {
+                    audio.play().catch(() => {});
                 }
 
                 return () => {
                     audio.pause();
-                    audio.removeEventListener('timeupdate', handleTimeUpdate);
-                    audio.removeEventListener('ended', handleEnded);
+                    audio.currentTime = 0;
                 };
             }, [chapterId, voiceLang, masterMute]);
 
-            const handleManualStart = () => {
-                storyVoiceRef.current.play()
-                    .then(() => {
-                        setIsPlaying(true);
-                        setPlayFailed(false);
-                    })
-                    .catch(e => console.error("Manual start failed", e));
-            };
+            // Text Timer Logic (Decoupled from Audio)
+            useEffect(() => {
+                // Clear existing timeouts
+                timeoutRefs.current.forEach(clearTimeout);
+                timeoutRefs.current = [];
+                setShowButton(false);
+                setCurrentText("");
+                setFade(true);
+
+                const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
+                if (!subtitles) return;
+
+                // Find the end time of the last subtitle to show button
+                let lastEndTime = 0;
+
+                subtitles.forEach((line) => {
+                    // Schedule text appearance
+                    const showTime = line.start * 1000;
+                    const hideTime = line.end * 1000;
+                    
+                    if (hideTime > lastEndTime) lastEndTime = hideTime;
+
+                    const t1 = setTimeout(() => {
+                        const text = (subLang === 'ja') ? line.text_jp : line.text_en;
+                        setFade(false);
+                        setTimeout(() => {
+                             setCurrentText(text);
+                             setFade(true);
+                        }, 200); // short fade transition
+                    }, showTime);
+                    
+                    timeoutRefs.current.push(t1);
+
+                    // Fade out at end (optional, creates gap between lines)
+                    const t2 = setTimeout(() => {
+                         // setFade(false); // If you want text to disappear between lines
+                    }, hideTime);
+                    timeoutRefs.current.push(t2);
+                });
+
+                // Show button after sequence
+                const tEnd = setTimeout(() => {
+                    setShowButton(true);
+                }, lastEndTime + 500);
+                timeoutRefs.current.push(tEnd);
+
+                return () => {
+                    timeoutRefs.current.forEach(clearTimeout);
+                };
+            }, [chapterId, voiceLang, subLang, data]);
 
             const handleSkip = () => {
+                timeoutRefs.current.forEach(clearTimeout);
                 storyVoiceRef.current.pause();
-                if (Number.isFinite(storyVoiceRef.current.duration)) {
-                    storyVoiceRef.current.currentTime = storyVoiceRef.current.duration;
-                }
-                setIsPlaying(false);
                 
+                // Show last line immediately
                 const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
                 if (subtitles && subtitles.length > 0) {
                     const last = subtitles[subtitles.length - 1];
                     setCurrentText((subLang === 'ja') ? last.text_jp : last.text_en);
                 }
-                
-                setFade(true);
                 setShowButton(true);
             };
 
@@ -461,27 +445,16 @@
                         <div className="w-0 h-px bg-white mx-auto mt-6 animate-expand-line"></div>
                     </div>
                     
-                    {playFailed && !showButton ? (
-                        <div className="flex flex-col items-center justify-center h-40 z-50">
-                            <button 
-                                onClick={handleManualStart} 
-                                className="px-6 py-3 border border-white/30 text-white text-sm tracking-widest uppercase hover:bg-white/10 transition-all animate-pulse"
-                            >
-                                TAP TO START
+                    <div className="w-full flex flex-col items-center justify-center h-40 max-w-md text-center relative">
+                        <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+                            {currentText ? `"${currentText}"` : ""}
+                        </p>
+                        {!showButton && (
+                            <button onClick={handleSkip} className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors">
+                                {t.skip}
                             </button>
-                        </div>
-                    ) : (
-                        <div className="w-full flex flex-col items-center justify-center h-40 max-w-md text-center relative">
-                            <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-                                {currentText ? `"${currentText}"` : ""}
-                            </p>
-                            {!showButton && (
-                                <button onClick={handleSkip} className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors">
-                                    {t.skip}
-                                </button>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     <div className={`absolute bottom-16 transition-all duration-1000 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         <div className="text-center mb-8"><p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{lang === 'ja' ? data.mission_ja : data.mission}</p></div>
@@ -778,6 +751,10 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
+                            <button onClick={() => { setShowSettings(!showSettings); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
+                            </button>
+                            
                             <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
