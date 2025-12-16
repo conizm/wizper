@@ -390,7 +390,6 @@
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
             const [showNotes, setShowNotes] = useState(false);
-            const [showSettings, setShowSettings] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false); // Double tap prevention
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
@@ -398,7 +397,6 @@
             const gameVoiceRef = useRef(new Audio());
             const [currentSubtitle, setCurrentSubtitle] = useState("");
             const subtitleTimeouts = useRef([]);
-            const voiceStartTime = useRef(0); // For tracking playback position
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
 
@@ -416,19 +414,34 @@
                 return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
             }, []);
 
-            useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
+            // Handle audio end naturally to allow Speaking... to persist correctly
+            useEffect(() => {
+                const handleAudioEnd = () => {
+                    setIsPlaying(false);
+                };
+                gameVoiceRef.current.addEventListener('ended', handleAudioEnd);
+                return () => {
+                    gameVoiceRef.current.removeEventListener('ended', handleAudioEnd);
+                };
+            }, []);
             
-            // Voice Playback Logic
+            // Voice Playback Setup
             useEffect(() => {
                 if (!currentTarget) return;
                 
                 const voiceSrc = (voiceLang === 'ja' && currentTarget.voice_ja) ? currentTarget.voice_ja : currentTarget.voice;
                 if (!voiceSrc) return;
 
-                gameVoiceRef.current.src = voiceSrc;
-                setIsPlaying(false); 
+                // Stop previous audio and timeouts
+                gameVoiceRef.current.pause();
+                setIsPlaying(false);
+                subtitleTimeouts.current.forEach(clearTimeout);
+                setCurrentSubtitle("");
 
-                // Slightly longer delay to ensure state and DOM are ready
+                gameVoiceRef.current.src = voiceSrc;
+                gameVoiceRef.current.load(); // Ensure new src is loaded
+
+                // Auto play if not first load and not complete
                 if (!isComplete && voiceLang !== 'off') {
                      const timer = setTimeout(() => handlePlayPause(true), 200);
                      return () => clearTimeout(timer);
@@ -440,7 +453,7 @@
                 };
             }, [currentTargetIndex, chapterId, voiceLang]); 
 
-            // Subtitle Toggle Logic - Dynamic Update during playback
+            // Subtitle Update Logic
             useEffect(() => {
                 if (isPlaying && !gameVoiceRef.current.paused) {
                     // Clear existing subtitles
@@ -480,7 +493,6 @@
                         const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
                         const tEnd = setTimeout(() => {
                             setCurrentSubtitle("");
-                            // We don't stop playback here, onended does that
                         }, remainingTime);
                         subtitleTimeouts.current.push(tEnd);
                     }
@@ -495,15 +507,13 @@
                     setCurrentSubtitle("");
                 } else {
                     if (voiceLang === 'off') return;
-                    gameVoiceRef.current.volume = 1.0; 
+                    
+                    // Reset Logic to fix replay issue
                     gameVoiceRef.current.currentTime = 0;
-                    voiceStartTime.current = Date.now(); // Track start time if needed, though currentTime is better
+                    gameVoiceRef.current.volume = 1.0; 
                     
-                    gameVoiceRef.current.play().catch(e => console.log("Play error (interaction might be needed)", e));
-                    setIsPlaying(true);
-                    
+                    // Set subtitles again
                     const showSubs = subLang !== 'off';
-                    
                     if (showSubs && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
                         const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
                         subtitleTimeouts.current.forEach(clearTimeout);
@@ -517,21 +527,21 @@
                         subs.forEach((text, i) => {
                             const showTime = accumulatedTime;
                             const duration = durations[i] || 4000; 
-                            
                             const t1 = setTimeout(() => setCurrentSubtitle(text), showTime);
                             subtitleTimeouts.current.push(t1);
-                            
                             accumulatedTime += duration;
                         });
                         
                         const tEnd = setTimeout(() => {
                             setCurrentSubtitle("");
-                            setIsPlaying(false); 
+                            // Do NOT set isPlaying(false) here. Let onended handle it.
                         }, accumulatedTime);
                         subtitleTimeouts.current.push(tEnd);
-                    } else {
-                         gameVoiceRef.current.onended = () => setIsPlaying(false);
                     }
+
+                    gameVoiceRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(e => console.log("Play error", e));
                 }
             };
 
@@ -543,7 +553,7 @@
             }, [masterMute]);
 
             const handleImageClick = (e) => {
-                if (isProcessing || isComplete) return; // Prevent double tapping
+                if (isProcessing || isComplete) return;
 
                 const img = imageRef.current;
                 if (!img) return;
@@ -580,7 +590,7 @@
                 const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
                 
                 if (dist < target.radius) {
-                    setIsProcessing(true); // Lock input
+                    setIsProcessing(true); // Lock
                     triggerFeedback(true);
                     
                     const newTargets = [...targets];
@@ -694,45 +704,6 @@
                                 </div>
                             </div>
                         )}
-                        
-                        {showSettings && (
-                            <div className="absolute bottom-20 left-4 z-50 bg-[#1a1a1a]/95 border border-white/10 rounded-lg p-4 shadow-xl text-xs backdrop-blur-md w-64">
-                                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-                                    <span className="font-serif tracking-widest text-gray-400">Settings</span>
-                                    <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-white">✕</button>
-                                </div>
-                                
-                                <div className="mb-4">
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0">
                         <button onClick={() => handlePlayPause()} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete}>
@@ -746,10 +717,6 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
-                            <button onClick={() => { setShowSettings(!showSettings); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
-                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
-                            </button>
-                            
                             <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
@@ -768,7 +735,7 @@
             useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
 
             const handleOpenJournal = () => {
-                audioActions.playClick(); // Click 1
+                audioActions.playClick1(); // Click 1
                 const lastCleared = Math.max(0, ...clearedChapters);
                 const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
                 onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
@@ -1102,6 +1069,7 @@
 
             const audioActions = {
                 playClick: () => playSfx('click'),
+                playClick1: () => playSfx('click'),
                 playClick2: () => playSfx('click2'),
                 playFound: () => playSfx('found'),
                 playComplete: () => playSfx('complete'),
