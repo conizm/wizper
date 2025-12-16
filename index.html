@@ -331,7 +331,6 @@
             }, [chapterId, voiceLang, masterMute]);
 
             useEffect(() => {
-                let interval;
                 const updateText = () => {
                     const currentTime = storyVoiceRef.current.currentTime;
                     const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
@@ -355,15 +354,16 @@
                     }
                 };
 
-                if (isPlaying) {
-                    interval = setInterval(updateText, 100);
-                } else if (voiceLang === 'off') {
+                const eventHandler = () => updateText();
+                storyVoiceRef.current.addEventListener('timeupdate', eventHandler);
+
+                if (voiceLang === 'off') {
                     if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
                     setShowButton(true);
                 }
 
-                return () => clearInterval(interval);
-            }, [isPlaying, currentText, data, subLang, voiceLang]);
+                return () => storyVoiceRef.current.removeEventListener('timeupdate', eventHandler);
+            }, [currentText, data, subLang, voiceLang]);
 
             useEffect(() => {
                 if (chapterId === 1) {
@@ -407,7 +407,7 @@
                         <h1 className="text-2xl font-serif text-gray-300 tracking-widest">{lang === 'ja' ? data.title_ja : data.title}</h1>
                         <div className="w-0 h-px bg-white mx-auto mt-6 animate-expand-line"></div>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-40 max-w-md text-center relative">
+                    <div className="w-full flex flex-col items-center justify-center h-40 max-w-md text-center relative">
                         <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
                             {currentText ? `"${currentText}"` : ""}
                         </p>
@@ -539,6 +539,12 @@
                 }
             }, [masterMute]);
 
+            const handleBack = () => {
+                gameVoiceRef.current.pause();
+                setIsPlaying(false);
+                onBack();
+            };
+
             const handleImageClick = (e) => {
                 if (isProcessing || isComplete) return;
 
@@ -620,7 +626,7 @@
             return (
                 <div className="flex flex-col h-[100dvh] w-full bg-[#1a1a1a] text-[#f9f9f7] overflow-hidden select-none relative animate-fade-in-game">
                     <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0">
-                        <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={onBack}>
+                        <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={handleBack}>
                             <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">{t.back}</span>
                         </div>
                         <div className="text-center flex flex-col items-center flex-1">
@@ -703,10 +709,6 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
-                            <button onClick={() => { setShowSettings(!showSettings); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
-                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
-                            </button>
-                            
                             <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
