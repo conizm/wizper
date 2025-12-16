@@ -183,44 +183,90 @@
             1: {
                 id: 1, title: "The Dusty Shelf", title_ja: "埃かぶった小瓶たち",
                 sub: "Study Room", sub_ja: "書斎",
-                storyLines: [ "...Magic... is not just about waving wands, my Apprentice.", "It is about...precision.", "I require a few specific potions from this cluttered shelf.", "Listen closely to my instructions... and bring me only the ones I ask for.", "...Be warned. Picking the wrong bottle... will result in a catastrophe." ],
-                storyLines_ja: [ "魔法っていうのは、ただ杖を振ればいいわけじゃない。 重要なのは……『正確さ』だ。", "この散らかった棚から、 私が必要としている『いくつかの薬瓶』を取ってきてほしい。", "指示をよく聞いて、 『正解の薬』だけを持ってくるんだ。いいね？", "心してかかってくれ。 間違った瓶を選べば……大惨事になるからな。" ],
                 mission: "- Find 3 hidden items -", mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://conizm.github.io/wizper/images/c1photo_1.png",
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
+                
+                // Story Data (Voice: English)
+                storyData_en: [
+                    { start: 2.2, end: 7.0, text_en: "Magic is not just about waving wands, my apprentice.", text_jp: "魔法というのは、ただ杖を振ればいいわけじゃない。" },
+                    { start: 7.5, end: 10.5, text_en: "It is about... precision.", text_jp: "重要なのは……正確さだ。" },
+                    { start: 11.5, end: 16.0, text_en: "I require a few specific potions from this cluttered shelf.", text_jp: "この散らかった棚から、いくつか特定の薬瓶を取ってきてほしい。" },
+                    { start: 17.0, end: 20.0, text_en: "Listen closely to my instructions,", text_jp: "私の指示をよく聞き、" },
+                    { start: 20.1, end: 23.5, text_en: "and bring me only the ones I ask for.", text_jp: "私が頼んだものだけを持ってくるんだ。" },
+                    { start: 24.5, end: 26.2, text_en: "Be warned.", text_jp: "心してかかれ。" },
+                    { start: 26.8, end: 31.0, text_en: "Picking the wrong bottle will result in a catastrophe.", text_jp: "間違った瓶を選べば、大惨事になるからな。" }
+                ],
+                // Story Data (Voice: Japanese)
+                storyData_ja: [
+                    { start: 0.0, end: 4.5, text_jp: "魔法っていうのは、ただ杖を振ればいいわけじゃない。", text_en: "Magic is not just about waving wands." },
+                    { start: 5.0, end: 8.0, text_jp: "重要なのは、正確さだ。", text_en: "It is about... precision." },
+                    { start: 9.0, end: 14.5, text_jp: "この散らかった棚から、私が必要としているいくつかの薬瓶を取ってきてほしい。", text_en: "I require a few specific potions from this cluttered shelf." },
+                    { start: 15.0, end: 20.0, text_jp: "指示をよく聞いて、正解の薬だけを持ってくるんだ。", text_en: "Listen closely, and bring me only the ones I ask for." },
+                    { start: 20.5, end: 21.5, text_jp: "いいね？", text_en: "Understood?" },
+                    { start: 22.0, end: 23.5, text_jp: "心してかかってくれ。", text_en: "Be warned." },
+                    { start: 24.0, end: 28.0, text_jp: "間違った瓶を選べば、大惨事になるからな。", text_en: "Picking the wrong bottle will result in a catastrophe." }
+                ],
+
                 targets: [
                     { 
                         id: 1, name: "bottle1", x: 51, y: 60, radius: 7, found: false,
                         voice: "voice/c1-q1-en.mp3",
                         voice_ja: "voice/c1-q1-jp.mp3", 
-                        subtitles_en: [ "...Your first trial. Observe the shelves closely.", "Burlap covers many jars here... but there is... one shelf...", "that is completely naked... devoid of any burlap lids.", "Find that... silent shelf.", "Once you have found it... bring me the vial sealed with... Brown Wax.", "That... is the only truth I seek." ],
-                        subtitles_ja: [ "最初の試練だ。棚をよく見てくれ。", "ここには麻の布で覆われた瓶が多いが…… 『麻布の蓋が一つもない棚』が、たった一段だけあるはずだ。", "まずはその「沈黙の棚」を見つけ出してくれ。", "見つけたら……その棚にある『茶色の蝋燭で封された瓶』を持ってきてほしい。", "それだけが、私の求める真実だ。" ],
-                        durations: [6000, 7000, 4000, 8000, 5000]
+                        subtitleData: [
+                            { start: 2.2, end: 4.1, text_en: "Your first trial.", text_jp: "最初の試練だ。" },
+                            { start: 4.4, end: 7.0, text_en: "Observe the shelves closely.", text_jp: "棚をよく見てくれ。" },
+                            { start: 7.5, end: 11.0, text_en: "Burlap covers many jars here,", text_jp: "ここには麻の布で覆われた瓶が多いが、" },
+                            { start: 11.2, end: 16.5, text_en: "but there is one shelf that is completely naked,", text_jp: "麻の布の蓋が一つもない、完全にむき出しの棚が、" },
+                            { start: 16.8, end: 19.5, text_en: "devoid of any burlap lids.", text_jp: "たった一段だけあるはずだ。" },
+                            { start: 20.0, end: 24.0, text_en: "Find that... silent shelf.", text_jp: "その……沈黙の棚を見つけ出してくれ。" },
+                            { start: 24.8, end: 26.8, text_en: "Once you have found it,", text_jp: "見つけたら、" },
+                            { start: 27.0, end: 31.0, text_en: "bring me the vial sealed with brown wax.", text_jp: "茶色のロウソクで封された瓶を持ってくるんだ。" },
+                            { start: 31.5, end: 36.0, text_en: "That is the only truth I seek.", text_jp: "それだけが、私の求める真実だ。" }
+                        ]
                     },
                     { 
                         id: 2, name: "bottle2", x: 38.5, y: 38.3, radius: 7, found: false,
                         voice: "voice/c1-q2-en.mp3",
                         voice_ja: "voice/c1-q2-jp.mp3",
-                        subtitles_en: [ "Numbers never lie, my Apprentice.", "Count the vials containing Blue Liquid in the entire cabinet.", "That number tells you exactly which shelf to look at. From top to bottom.", "Have you found the shelf?", "Then, ignore the colors. Just bring me the one bottle on that shelf covered in Burlap.", "Simple...is it not?" ],
-                        subtitles_ja: [ "数字は嘘をつかない。 この棚全体にある、『青い液体の瓶』を数えてみてくれ。", "その数が……正解の瓶がある『段』を示している。段は上から数えてくれ。", "棚はわかったかい？", "なら、色は忘れていい。その棚にある『麻布』の蓋の瓶を取ってこい。 ……単純な話だろ？" ]
+                        subtitleData: [
+                            { start: 0.8, end: 2.5, text_en: "Numbers never lie, my boy.", text_jp: "数字は嘘をつかない。" },
+                            { start: 3.0, end: 7.0, text_en: "Count the vials containing clear, blue liquid", text_jp: "透明で青い液体の入った瓶を数えてみてくれ、" },
+                            { start: 7.3, end: 9.0, text_en: "in the entire cabinet.", text_jp: "この棚全体にある分を。" },
+                            { start: 10.0, end: 15.0, text_en: "That number tells you exactly which shelf to look at.", text_jp: "その数が、見るべき棚の段数を正確に示している。" },
+                            { start: 16.0, end: 17.5, text_en: "From top... to bottom.", text_jp: "上から……下へ向かって数えるんだ。" },
+                            { start: 18.5, end: 20.0, text_en: "Have you found the shelf?", text_jp: "棚は分かったかい？" },
+                            { start: 21.0, end: 22.8, text_en: "Then, ignore the colors.", text_jp: "なら、色は無視していい。" },
+                            { start: 23.5, end: 28.5, text_en: "Just bring me the one bottle on that shelf covered in burlap.", text_jp: "その棚にある、麻の布で覆われた瓶を一つ持ってくるんだ。" },
+                            { start: 29.5, end: 31.5, text_en: "Simple, is it not?", text_jp: "単純な話だろう？" }
+                        ]
                     },
                     { 
                         id: 3, name: "bottle3", x: 75.5, y: 62.3, radius: 12, found: false,
                         voice: "voice/c1-q3-en.mp3",
                         voice_ja: "voice/c1-q3-jp.mp3",
-                        subtitles_en: [ "The final test. A journey for your finger.", "Start at the very top shelf on the far left bottle... with the Red Wax.", "Now... move Right by the total number of Burlap lids in the cabinet. Are you there?", "Good. Now drop Down by the total number of Blue potions.", "Take the bottle your finger landed on. Do not hesitate." ],
-                        subtitles_ja: [ "最後の試練だ。指を指しながらついてきてくれ。", "スタートは、一番上の段……その左端にある『赤い蝋燭で封じられた瓶』だ。", "そこから『右』へ移動してくれ。 進む数は……棚全体にある『麻の布の蓋』の数だけだ。", "……進んだかい？", "次は、そこから『真下』へ降りてくれ。 降りる段数は……棚全体にある『青い液体』の数だけ下へ。", "……指が止まった場所にある、その瓶を取るんだ。迷わずにな。" ]
+                        subtitleData: [
+                            { start: 0.0, end: 1.5, text_en: "The final test.", text_jp: "最後の試練だ。" },
+                            { start: 2.0, end: 3.8, text_en: "A journey for your finger.", text_jp: "指をさしながらついてきてくれ。" },
+                            { start: 4.5, end: 8.0, text_en: "Start at the very top shelf, on the far left bottle,", text_jp: "スタートは一番上の段、その左端にある瓶だ。" },
+                            { start: 8.3, end: 9.8, text_en: "with the red wax.", text_jp: "赤いロウソクのついたやつだ。" },
+                            { start: 11.0, end: 16.5, text_en: "Now, move right by the total number of burlap lids in the cabinet.", text_jp: "そこから右へ、棚全体にある麻の布の蓋の数だけ移動してくれ。" },
+                            { start: 18.0, end: 19.5, text_en: "Are you there?", text_jp: "移動したかい？" },
+                            { start: 20.0, end: 20.8, text_en: "Good.", text_jp: "いいぞ。" },
+                            { start: 21.5, end: 26.5, text_en: "Now drop down by the total number of blue potions.", text_jp: "次はそこから真下へ、青い薬瓶の総数だけ降りるんだ。" },
+                            { start: 27.2, end: 29.5, text_en: "Take the bottle your finger landed on.", text_jp: "指が止まった場所にある、その瓶を取れ。" },
+                            { start: 30.5, end: 32.5, text_en: "Do not hesitate.", text_jp: "迷わずにな。" }
+                        ]
                     }
                 ]
             },
             2: {
                 id: 2, title: "Greenhouse", title_ja: "温室", sub: "Herbs & Roots", sub_ja: "薬草と根",
-                storyLines: [ "Be careful in here.", "The Mandrakes are light sleepers.", "I need ingredients for a silencing potion.", "Don't break anything." ],
-                storyLines_ja: [ "ここでは慎重にな。", "マンドレイクは眠りが浅い。", "沈黙の薬の材料が必要なのだ。", "何も壊すなよ。" ],
                 mission: "- Find 3 hidden items -", mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2400&auto=format&fit=crop", 
                 completionText: "Excellent work. These roots are fresh. Now, to the cauldron.", completionText_ja: "素晴らしい。根も新鮮だ。さあ、大鍋へ向かうぞ。",
+                storyData_en: [ { start: 0, end: 5, text_en: "Be careful in here. The Mandrakes are light sleepers.", text_jp: "ここでは慎重にな。マンドレイクは眠りが浅い。" } ],
                 targets: [
                     { id: 1, name: "Red Flower", name_ja: "赤い花", x: 20, y: 50, radius: 10, found: false },
                     { id: 2, name: "Trowel", name_ja: "コテ", x: 50, y: 50, radius: 10, found: false },
@@ -229,18 +275,16 @@
             },
             3: {
                 id: 3, title: "Midnight Market", title_ja: "真夜中の市場", sub: "Rare Artifacts", sub_ja: "希少な遺物",
-                storyLines: ["The merchant is waiting.", "Find the items before he changes his mind."],
-                storyLines_ja: ["商人が待っている。", "気が変わる前に品物を見つけるのだ。"],
                 mission: "- Find 4 hidden items -", mission_ja: "- 4つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=2400",
+                storyData_en: [ { start: 0, end: 5, text_en: "The merchant is waiting.", text_jp: "商人が待っている。" } ],
                 targets: [], completionText: "You are becoming useful.", completionText_ja: "役に立つようになってきたな。"
             },
             4: {
                 id: 4, title: "Ritual Chamber", title_ja: "儀式の間", sub: "The Grand Spell", sub_ja: "壮大なる呪文",
-                storyLines: ["The stars align.", "Precision is everything."],
-                storyLines_ja: ["星々が直列する。", "正確さが全てだ。"],
                 mission: "- Find 5 hidden items -", mission_ja: "- 5つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2400",
+                storyData_en: [ { start: 0, end: 5, text_en: "The stars align.", text_jp: "星々が直列する。" } ],
                 targets: [], completionText: "The spell is complete.", completionText_ja: "呪文は完成した。"
             }
         };
@@ -262,15 +306,14 @@
         const NextIcon = ({ size = 16, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
         const CheckIcon = ({ className="" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`check-icon ${className}`}><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd"/></svg>;
 
-        const StoryScreen = ({ chapterId, onStart, onBack, masterMute, bgmControl, voiceLang, voiceControl, lang, t }) => {
+        const StoryScreen = ({ chapterId, onStart, onBack, masterMute, bgmControl, voiceLang, voiceControl, lang, t, subLang }) => {
             const data = CHAPTERS_DB[chapterId];
-            const lines = lang === 'ja' ? (data.storyLines_ja || data.storyLines) : data.storyLines;
             
-            const [currentLineIndex, setCurrentLineIndex] = useState(0);
+            const [currentText, setCurrentText] = useState("");
             const [fade, setFade] = useState(true);
             const [showButton, setShowButton] = useState(false);
             const storyVoiceRef = useRef(new Audio(voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3'));
-            const activeTimeouts = useRef([]);
+            const [isPlaying, setIsPlaying] = useState(false);
 
             useEffect(() => {
                 const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
@@ -278,73 +321,86 @@
                     storyVoiceRef.current.src = src;
                 }
 
-                if (chapterId === 1 && voiceLang !== 'off') {
+                if (chapterId === 1 && voiceLang !== 'off' && !masterMute) {
                     storyVoiceRef.current.currentTime = 0;
-                    storyVoiceRef.current.play().catch(e => {});
+                    storyVoiceRef.current.play().then(() => setIsPlaying(true)).catch(e => {});
                 }
-                return () => { storyVoiceRef.current.pause(); };
-            }, [chapterId, voiceLang]);
+                
+                return () => { 
+                    storyVoiceRef.current.pause(); 
+                    setIsPlaying(false);
+                };
+            }, [chapterId, voiceLang, masterMute]);
+
+            // Sync text with audio
+            useEffect(() => {
+                let interval;
+                const updateText = () => {
+                    const currentTime = storyVoiceRef.current.currentTime;
+                    const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
+                    
+                    if (subtitles) {
+                        const currentSubtitle = subtitles.find(s => currentTime >= s.start && currentTime < s.end);
+                        if (currentSubtitle) {
+                            // Subtitle OFF -> English, English -> English, Japanese -> Japanese
+                            const text = (subLang === 'ja') ? currentSubtitle.text_jp : currentSubtitle.text_en;
+                            if (currentText !== text) {
+                                setFade(false);
+                                setTimeout(() => {
+                                    setCurrentText(text);
+                                    setFade(true);
+                                }, 200);
+                            }
+                        } else {
+                            if (currentText !== "" && isPlaying) {
+                                // Keep last text or fade out? Usually fade out between lines
+                                // setFade(false); 
+                            }
+                        }
+                    }
+                    
+                    // Show button when audio ends or near end
+                    if (storyVoiceRef.current.ended || (storyVoiceRef.current.duration > 0 && currentTime >= storyVoiceRef.current.duration - 0.5)) {
+                        setShowButton(true);
+                    }
+                };
+
+                if (isPlaying) {
+                    interval = setInterval(updateText, 100);
+                } else if (voiceLang === 'off') {
+                    // Fallback for no voice: show first line then button
+                    if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
+                    setShowButton(true);
+                }
+
+                return () => clearInterval(interval);
+            }, [isPlaying, currentText, data, subLang, voiceLang]);
 
             useEffect(() => {
                 if (chapterId === 1) {
-                    if (voiceControl.voiceVolume > 0) {
+                    if (voiceControl.voiceVolume > 0 && !masterMute) {
                         storyVoiceRef.current.volume = voiceControl.voiceVolume;
                     } else {
                         storyVoiceRef.current.volume = 0;
                     }
                 }
-            }, [voiceControl.voiceVolume, chapterId]);
-
-            const clearAllTimeouts = () => {
-                activeTimeouts.current.forEach(clearTimeout);
-                activeTimeouts.current = [];
-            };
+            }, [voiceControl.voiceVolume, chapterId, masterMute]);
 
             const handleSkip = () => {
-                clearAllTimeouts();
                 storyVoiceRef.current.pause();
-                storyVoiceRef.current.currentTime = 0;
-                setCurrentLineIndex(lines.length - 1);
+                storyVoiceRef.current.currentTime = storyVoiceRef.current.duration;
+                setIsPlaying(false);
+                
+                // Show last line text
+                const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
+                if (subtitles && subtitles.length > 0) {
+                    const last = subtitles[subtitles.length - 1];
+                    setCurrentText((subLang === 'ja') ? last.text_jp : last.text_en);
+                }
+                
                 setFade(true);
                 setShowButton(true);
             };
-
-            useEffect(() => {
-                setCurrentLineIndex(0);
-                setShowButton(false);
-                setFade(true);
-                clearAllTimeouts();
-
-                const fadeDuration = 500;
-                const chapter1Durations = [6000, 7000, 4000, 8000, 5000];
-
-                let accumulatedTime = 0;
-
-                lines.forEach((_, i) => {
-                    let duration = 4000;
-                    if (chapterId === 1 && i < chapter1Durations.length) {
-                        duration = chapter1Durations[i];
-                    }
-
-                    if (i < lines.length - 1) {
-                        const fadeOutTime = accumulatedTime + duration;
-                        activeTimeouts.current.push(setTimeout(() => setFade(false), fadeOutTime));
-
-                        const nextLineTime = fadeOutTime + fadeDuration;
-                        activeTimeouts.current.push(setTimeout(() => {
-                            setCurrentLineIndex(i + 1);
-                            setFade(true);
-                        }, nextLineTime));
-
-                        accumulatedTime = nextLineTime;
-                    } else {
-                        const buttonTime = accumulatedTime + 1000;
-                        activeTimeouts.current.push(setTimeout(() => setShowButton(true), buttonTime));
-                    }
-                });
-
-                return () => clearAllTimeouts();
-            }, [lines, chapterId]);
 
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center px-8 py-12 bg-[#111] animate-fade-in-long">
@@ -363,7 +419,7 @@
                     </div>
                     <div className="flex flex-col items-center justify-center h-40 max-w-md text-center relative">
                         <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-                            "{lines[currentLineIndex]}"
+                            "{currentText}"
                         </p>
                         {!showButton && (
                             <button onClick={handleSkip} className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors">
@@ -396,7 +452,6 @@
             const currentTarget = targets[currentTargetIndex];
             const gameVoiceRef = useRef(new Audio());
             const [currentSubtitle, setCurrentSubtitle] = useState("");
-            const subtitleTimeouts = useRef([]);
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
 
@@ -407,7 +462,6 @@
                     if (document.hidden) {
                         gameVoiceRef.current.pause();
                         setIsPlaying(false);
-                        subtitleTimeouts.current.forEach(clearTimeout);
                     }
                 };
                 document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -417,6 +471,7 @@
             useEffect(() => {
                 const handleAudioEnd = () => {
                     setIsPlaying(false);
+                    setCurrentSubtitle("");
                 };
                 gameVoiceRef.current.addEventListener('ended', handleAudioEnd);
                 return () => {
@@ -432,7 +487,6 @@
 
                 gameVoiceRef.current.pause();
                 setIsPlaying(false);
-                subtitleTimeouts.current.forEach(clearTimeout);
                 setCurrentSubtitle("");
 
                 gameVoiceRef.current.src = voiceSrc;
@@ -445,56 +499,34 @@
 
                 return () => {
                     gameVoiceRef.current.pause();
-                    subtitleTimeouts.current.forEach(clearTimeout);
                 };
             }, [currentTargetIndex, chapterId, voiceLang]); 
 
+            // Subtitle Sync Logic
             useEffect(() => {
-                if (isPlaying && !gameVoiceRef.current.paused) {
-                    subtitleTimeouts.current.forEach(clearTimeout);
-                    subtitleTimeouts.current = [];
-                    
-                    if (subLang === 'off') {
-                        setCurrentSubtitle("");
-                    } else {
-                        if (!currentTarget) return;
-                        const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
-                        if (!subs) return;
-
-                        const defaultDurations = [4000, 4000, 4000, 4000, 4000];
-                        const durations = currentTarget.durations || defaultDurations;
-                        
-                        const currentTimeMS = gameVoiceRef.current.currentTime * 1000;
-                        let accumulatedTime = 0;
-
-                        subs.forEach((text, i) => {
-                            const duration = durations[i] || 4000;
-                            const startTime = accumulatedTime;
-                            const endTime = accumulatedTime + duration;
-
-                            if (currentTimeMS < endTime) {
-                                const delay = Math.max(0, startTime - currentTimeMS);
-                                const t1 = setTimeout(() => setCurrentSubtitle(text), delay);
-                                subtitleTimeouts.current.push(t1);
+                let interval;
+                if (isPlaying && subLang !== 'off') {
+                    interval = setInterval(() => {
+                        const currentTime = gameVoiceRef.current.currentTime;
+                        if (currentTarget && currentTarget.subtitleData) {
+                            const subtitle = currentTarget.subtitleData.find(s => currentTime >= s.start && currentTime < s.end);
+                            if (subtitle) {
+                                setCurrentSubtitle(subLang === 'ja' ? subtitle.text_jp : subtitle.text_en);
+                            } else {
+                                setCurrentSubtitle("");
                             }
-                            accumulatedTime += duration;
-                        });
-                        
-                        const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
-                        const tEnd = setTimeout(() => {
-                            setCurrentSubtitle("");
-                        }, remainingTime);
-                        subtitleTimeouts.current.push(tEnd);
-                    }
+                        }
+                    }, 100);
+                } else {
+                    setCurrentSubtitle("");
                 }
-            }, [subLang]);
+                return () => clearInterval(interval);
+            }, [isPlaying, subLang, currentTarget]);
 
             const handlePlayPause = (forcePlay = false) => {
                 if (isPlaying && !forcePlay) {
                     gameVoiceRef.current.pause();
                     setIsPlaying(false);
-                    subtitleTimeouts.current.forEach(clearTimeout);
-                    // Do NOT clear currentSubtitle here to keep text visible on pause
                 } else {
                     if (voiceLang === 'off') return;
                     
@@ -506,38 +538,6 @@
                         gameVoiceRef.current.volume = 1.0; 
                     }
                     
-                    const showSubs = subLang !== 'off';
-                    if (showSubs && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
-                        const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
-                        subtitleTimeouts.current.forEach(clearTimeout);
-                        subtitleTimeouts.current = [];
-                        
-                        // Recalculate subtitle timing based on current playhead
-                        const currentTimeMS = gameVoiceRef.current.currentTime * 1000;
-                        let accumulatedTime = 0;
-                        const defaultDurations = [4000, 4000, 4000, 4000, 4000];
-                        const durations = currentTarget.durations || defaultDurations;
-
-                        subs.forEach((text, i) => {
-                            const duration = durations[i] || 4000;
-                            const startTime = accumulatedTime;
-                            const endTime = accumulatedTime + duration;
-
-                            if (currentTimeMS < endTime) {
-                                const delay = Math.max(0, startTime - currentTimeMS);
-                                const t1 = setTimeout(() => setCurrentSubtitle(text), delay);
-                                subtitleTimeouts.current.push(t1);
-                            }
-                            accumulatedTime += duration;
-                        });
-                        
-                        const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
-                        const tEnd = setTimeout(() => {
-                            setCurrentSubtitle("");
-                        }, remainingTime);
-                        subtitleTimeouts.current.push(tEnd);
-                    }
-
                     gameVoiceRef.current.play()
                         .then(() => setIsPlaying(true))
                         .catch(e => console.log("Play error", e));
@@ -598,7 +598,6 @@
 
                     gameVoiceRef.current.pause();
                     setIsPlaying(false);
-                    subtitleTimeouts.current.forEach(clearTimeout);
                     setCurrentSubtitle("");
 
                     if (currentTargetIndex < targets.length - 1) {
@@ -703,6 +702,45 @@
                                 </div>
                             </div>
                         )}
+                        
+                        {showSettings && (
+                            <div className="absolute bottom-20 left-4 z-50 bg-[#1a1a1a]/95 border border-white/10 rounded-lg p-4 shadow-xl text-xs backdrop-blur-md w-64">
+                                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <span className="font-serif tracking-widest text-gray-400">Settings</span>
+                                    <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-white">✕</button>
+                                </div>
+                                
+                                <div className="mb-4">
+                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
+                                        </button>
+                                        <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
+                                        </button>
+                                        <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
+                                        </button>
+                                        <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
+                                        </button>
+                                        <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
+                                            {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0">
                         <button onClick={() => handlePlayPause()} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete}>
@@ -716,6 +754,10 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
+                            <button onClick={() => { setShowSettings(!showSettings); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
+                            </button>
+                            
                             <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
@@ -1125,7 +1167,7 @@
             return (
                 <>
                     {screen === 'HOME' && <HomeScreen onNavigate={navigate} user={user} login={login} logout={logout} clearedChapters={clearedChapters} masterMute={masterMute} toggleMasterMute={toggleMasterMute} bgmControl={bgmControl} voiceControl={voiceControl} audioActions={audioActions} settingsControl={settingsControl} lang={language} />}
-                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} voiceControl={voiceControl} lang={language} t={TRANSLATIONS[language]} />}
+                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} voiceControl={voiceControl} lang={language} t={TRANSLATIONS[language]} subLang={subLang} />}
                     {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} subLang={subLang} voiceControl={voiceControl} audioActions={audioActions} lang={language} settingsControl={settingsControl} onReplay={() => { navigate('HOME'); setTimeout(() => navigate('GAME'), 100); }} />}
                 </>
             );
