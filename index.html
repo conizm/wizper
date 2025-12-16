@@ -188,7 +188,6 @@
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 
-                // Story Data (Voice: English)
                 storyData_en: [
                     { start: 2.2, end: 7.4, text_en: "Magic is not just about waving wands, my apprentice.", text_jp: "魔法というのは、ただ杖を振ればいいわけじゃない。" },
                     { start: 7.5, end: 11.4, text_en: "It is about... precision.", text_jp: "重要なのは……正確さだ。" },
@@ -198,7 +197,6 @@
                     { start: 24.5, end: 26.7, text_en: "Be warned.", text_jp: "心してかかれ。" },
                     { start: 26.8, end: 33.0, text_en: "Picking the wrong bottle will result in a catastrophe.", text_jp: "間違った瓶を選べば、大惨事になるからな。" }
                 ],
-                // Story Data (Voice: Japanese)
                 storyData_ja: [
                     { start: 0.0, end: 4.5, text_jp: "魔法っていうのは、ただ杖を振ればいいわけじゃない。", text_en: "Magic is not just about waving wands." },
                     { start: 5.0, end: 8.0, text_jp: "重要なのは、正確さだ。", text_en: "It is about... precision." },
@@ -351,7 +349,7 @@
             // Audio Setup
             useEffect(() => {
                 const audio = storyVoiceRef.current;
-                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
+                const src = voiceLang === 'ja' ? 'story/c1-story-jp.mp3' : 'story/c1-story-en.mp3';
                 audio.src = src;
                 audio.volume = (masterMute || voiceLang === 'off') ? 0 : voiceControl.voiceVolume;
                 
