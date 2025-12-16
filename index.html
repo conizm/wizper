@@ -206,7 +206,7 @@
                         subtitles_ja: [ "数字は嘘をつかないぞ、若いの。 この棚全体にある、『青い液体の瓶』を数えるのじゃ。", "その数が……正解の瓶がある『段』を示しておる。上から順にな。", "棚はわかったか？", "ならば色は忘れて、その棚にある『麻布』で蓋をされた瓶を取ってこい。", "……単純なことじゃろう？" ]
                     },
                     { 
-                        id: 3, name: "bottle3", x: 75.5, y: 62.3, radius: 7, found: false,
+                        id: 3, name: "bottle3", x: 75.5, y: 62.3, radius: 12, found: false, /* Increased radius to 12 for mobile tap tolerance */
                         voice: "voice/c1-q3-en.mp3",
                         voice_ja: "voice/c1-q3-jp.mp3",
                         subtitles_en: [ "The final test. A journey for your finger.", "Start at the very top shelf on the far left bottle... with the Red Wax.", "Now... move Right by the total number of Burlap lids in the cabinet. Are you there?", "Good. Now drop Down by the total number of Blue potions.", "Take the bottle your finger landed on. Do not hesitate." ],
@@ -390,7 +390,7 @@
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
             const [showNotes, setShowNotes] = useState(false);
-            const [isProcessing, setIsProcessing] = useState(false); // Double tap prevention
+            const [isProcessing, setIsProcessing] = useState(false); 
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
             const currentTarget = targets[currentTargetIndex];
@@ -414,7 +414,6 @@
                 return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
             }, []);
 
-            // Handle audio end naturally to allow Speaking... to persist correctly
             useEffect(() => {
                 const handleAudioEnd = () => {
                     setIsPlaying(false);
@@ -425,23 +424,20 @@
                 };
             }, []);
             
-            // Voice Playback Setup
             useEffect(() => {
                 if (!currentTarget) return;
                 
                 const voiceSrc = (voiceLang === 'ja' && currentTarget.voice_ja) ? currentTarget.voice_ja : currentTarget.voice;
                 if (!voiceSrc) return;
 
-                // Stop previous audio and timeouts
                 gameVoiceRef.current.pause();
                 setIsPlaying(false);
                 subtitleTimeouts.current.forEach(clearTimeout);
                 setCurrentSubtitle("");
 
                 gameVoiceRef.current.src = voiceSrc;
-                gameVoiceRef.current.load(); // Ensure new src is loaded
+                gameVoiceRef.current.load();
 
-                // Auto play if not first load and not complete
                 if (!isComplete && voiceLang !== 'off') {
                      const timer = setTimeout(() => handlePlayPause(true), 200);
                      return () => clearTimeout(timer);
@@ -453,17 +449,14 @@
                 };
             }, [currentTargetIndex, chapterId, voiceLang]); 
 
-            // Subtitle Update Logic
             useEffect(() => {
                 if (isPlaying && !gameVoiceRef.current.paused) {
-                    // Clear existing subtitles
                     subtitleTimeouts.current.forEach(clearTimeout);
                     subtitleTimeouts.current = [];
                     
                     if (subLang === 'off') {
                         setCurrentSubtitle("");
                     } else {
-                        // Re-schedule subtitles based on current time
                         if (!currentTarget) return;
                         const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
                         if (!subs) return;
@@ -480,16 +473,13 @@
                             const endTime = accumulatedTime + duration;
 
                             if (currentTimeMS < endTime) {
-                                // If this subtitle is current or in future
                                 const delay = Math.max(0, startTime - currentTimeMS);
-                                
                                 const t1 = setTimeout(() => setCurrentSubtitle(text), delay);
                                 subtitleTimeouts.current.push(t1);
                             }
                             accumulatedTime += duration;
                         });
                         
-                        // Clear subtitle after last line
                         const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
                         const tEnd = setTimeout(() => {
                             setCurrentSubtitle("");
@@ -497,7 +487,7 @@
                         subtitleTimeouts.current.push(tEnd);
                     }
                 }
-            }, [subLang]); // Re-run when subLang changes
+            }, [subLang]);
 
             const handlePlayPause = (forcePlay = false) => {
                 if (isPlaying && !forcePlay) {
@@ -508,11 +498,14 @@
                 } else {
                     if (voiceLang === 'off') return;
                     
-                    // Reset Logic to fix replay issue
-                    gameVoiceRef.current.currentTime = 0;
-                    gameVoiceRef.current.volume = 1.0; 
+                    if (gameVoiceRef.current.paused && gameVoiceRef.current.currentTime > 0 && !gameVoiceRef.current.ended) {
+                        // Resume logic: Do NOT reset currentTime
+                    } else {
+                        // Start/Restart logic
+                        gameVoiceRef.current.currentTime = 0;
+                        gameVoiceRef.current.volume = 1.0; 
+                    }
                     
-                    // Set subtitles again
                     const showSubs = subLang !== 'off';
                     if (showSubs && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
                         const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
@@ -523,19 +516,26 @@
                         let accumulatedTime = 0;
                         const defaultDurations = [4000, 4000, 4000, 4000, 4000];
                         const durations = currentTarget.durations || defaultDurations;
+                        
+                        const currentTimeMS = gameVoiceRef.current.currentTime * 1000;
 
                         subs.forEach((text, i) => {
-                            const showTime = accumulatedTime;
-                            const duration = durations[i] || 4000; 
-                            const t1 = setTimeout(() => setCurrentSubtitle(text), showTime);
-                            subtitleTimeouts.current.push(t1);
+                            const duration = durations[i] || 4000;
+                            const startTime = accumulatedTime;
+                            const endTime = accumulatedTime + duration;
+
+                            if (currentTimeMS < endTime) {
+                                const delay = Math.max(0, startTime - currentTimeMS);
+                                const t1 = setTimeout(() => setCurrentSubtitle(text), delay);
+                                subtitleTimeouts.current.push(t1);
+                            }
                             accumulatedTime += duration;
                         });
                         
+                        const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
                         const tEnd = setTimeout(() => {
                             setCurrentSubtitle("");
-                            // Do NOT set isPlaying(false) here. Let onended handle it.
-                        }, accumulatedTime);
+                        }, remainingTime);
                         subtitleTimeouts.current.push(tEnd);
                     }
 
@@ -590,7 +590,7 @@
                 const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
                 
                 if (dist < target.radius) {
-                    setIsProcessing(true); // Lock
+                    setIsProcessing(true); 
                     triggerFeedback(true);
                     
                     const newTargets = [...targets];
@@ -605,7 +605,7 @@
                     if (currentTargetIndex < targets.length - 1) {
                         setTimeout(() => {
                             setCurrentTargetIndex(prev => prev + 1);
-                            setIsProcessing(false); // Unlock
+                            setIsProcessing(false); 
                         }, 1500);
                     } else {
                         setTimeout(() => {
