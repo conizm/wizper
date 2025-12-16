@@ -188,7 +188,6 @@
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 
-                // Story Data (Voice: English)
                 storyData_en: [
                     { start: 2.2, end: 7.0, text_en: "Magic is not just about waving wands, my apprentice.", text_jp: "魔法というのは、ただ杖を振ればいいわけじゃない。" },
                     { start: 7.5, end: 10.5, text_en: "It is about... precision.", text_jp: "重要なのは……正確さだ。" },
@@ -198,7 +197,6 @@
                     { start: 24.5, end: 26.2, text_en: "Be warned.", text_jp: "心してかかれ。" },
                     { start: 26.8, end: 31.0, text_en: "Picking the wrong bottle will result in a catastrophe.", text_jp: "間違った瓶を選べば、大惨事になるからな。" }
                 ],
-                // Story Data (Voice: Japanese)
                 storyData_ja: [
                     { start: 0.0, end: 4.5, text_jp: "魔法っていうのは、ただ杖を振ればいいわけじゃない。", text_en: "Magic is not just about waving wands." },
                     { start: 5.0, end: 8.0, text_jp: "重要なのは、正確さだ。", text_en: "It is about... precision." },
@@ -317,7 +315,7 @@
 
             useEffect(() => {
                 const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
-                if (storyVoiceRef.current.src !== new URL(src, window.location.href).href) {
+                if (!storyVoiceRef.current.src.includes(src)) {
                     storyVoiceRef.current.src = src;
                 }
 
@@ -332,7 +330,6 @@
                 };
             }, [chapterId, voiceLang, masterMute]);
 
-            // Sync text with audio
             useEffect(() => {
                 let interval;
                 const updateText = () => {
@@ -342,7 +339,6 @@
                     if (subtitles) {
                         const currentSubtitle = subtitles.find(s => currentTime >= s.start && currentTime < s.end);
                         if (currentSubtitle) {
-                            // Subtitle OFF -> English, English -> English, Japanese -> Japanese
                             const text = (subLang === 'ja') ? currentSubtitle.text_jp : currentSubtitle.text_en;
                             if (currentText !== text) {
                                 setFade(false);
@@ -351,15 +347,9 @@
                                     setFade(true);
                                 }, 200);
                             }
-                        } else {
-                            if (currentText !== "" && isPlaying) {
-                                // Keep last text or fade out? Usually fade out between lines
-                                // setFade(false); 
-                            }
                         }
                     }
                     
-                    // Show button when audio ends or near end
                     if (storyVoiceRef.current.ended || (storyVoiceRef.current.duration > 0 && currentTime >= storyVoiceRef.current.duration - 0.5)) {
                         setShowButton(true);
                     }
@@ -368,7 +358,6 @@
                 if (isPlaying) {
                     interval = setInterval(updateText, 100);
                 } else if (voiceLang === 'off') {
-                    // Fallback for no voice: show first line then button
                     if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
                     setShowButton(true);
                 }
@@ -388,10 +377,11 @@
 
             const handleSkip = () => {
                 storyVoiceRef.current.pause();
-                storyVoiceRef.current.currentTime = storyVoiceRef.current.duration;
+                if (Number.isFinite(storyVoiceRef.current.duration)) {
+                    storyVoiceRef.current.currentTime = storyVoiceRef.current.duration;
+                }
                 setIsPlaying(false);
                 
-                // Show last line text
                 const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
                 if (subtitles && subtitles.length > 0) {
                     const last = subtitles[subtitles.length - 1];
@@ -419,7 +409,7 @@
                     </div>
                     <div className="flex flex-col items-center justify-center h-40 max-w-md text-center relative">
                         <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-                            "{currentText}"
+                            {currentText ? `"${currentText}"` : ""}
                         </p>
                         {!showButton && (
                             <button onClick={handleSkip} className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors">
@@ -502,7 +492,6 @@
                 };
             }, [currentTargetIndex, chapterId, voiceLang]); 
 
-            // Subtitle Sync Logic
             useEffect(() => {
                 let interval;
                 if (isPlaying && subLang !== 'off') {
@@ -531,9 +520,8 @@
                     if (voiceLang === 'off') return;
                     
                     if (gameVoiceRef.current.paused && gameVoiceRef.current.currentTime > 0 && !gameVoiceRef.current.ended) {
-                        // Resume
+                        // Resume logic
                     } else {
-                        // Start/Restart
                         gameVoiceRef.current.currentTime = 0;
                         gameVoiceRef.current.volume = 1.0; 
                     }
@@ -697,45 +685,6 @@
                                         <button onClick={() => onComplete(chapterId)} className="group flex items-center justify-center gap-3 px-8 py-3 border border-white/30 hover:bg-white/10 transition-all rounded-sm">
                                             <span className="text-xs uppercase tracking-[0.2em] text-white group-hover:text-[#f9f9f7]">{t.nextChapter}</span>
                                             <NextIcon size={16} className="text-white/70 group-hover:translate-x-1 transition-transform"/>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {showSettings && (
-                            <div className="absolute bottom-20 left-4 z-50 bg-[#1a1a1a]/95 border border-white/10 rounded-lg p-4 shadow-xl text-xs backdrop-blur-md w-64">
-                                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-                                    <span className="font-serif tracking-widest text-gray-400">Settings</span>
-                                    <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-white">✕</button>
-                                </div>
-                                
-                                <div className="mb-4">
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1048,6 +997,7 @@
                 if (sfxVolume <= 0) return;
                 let audio = null;
                 if (type === 'click') audio = sfxClick1.current;
+                else if (type === 'click1') audio = sfxClick1.current;
                 else if (type === 'click2') audio = sfxClick2.current;
                 else if (type === 'found') audio = sfxFound.current;
                 else if (type === 'complete') audio = sfxComplete.current;
@@ -1110,7 +1060,7 @@
 
             const audioActions = {
                 playClick: () => playSfx('click'),
-                playClick1: () => playSfx('click'),
+                playClick1: () => playSfx('click1'),
                 playClick2: () => playSfx('click2'),
                 playFound: () => playSfx('found'),
                 playComplete: () => playSfx('complete'),
