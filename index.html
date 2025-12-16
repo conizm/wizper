@@ -188,6 +188,7 @@
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
                 
+                // Story Data (Voice: English)
                 storyData_en: [
                     { start: 2.2, end: 7.4, text_en: "Magic is not just about waving wands, my apprentice.", text_jp: "魔法というのは、ただ杖を振ればいいわけじゃない。" },
                     { start: 7.5, end: 11.4, text_en: "It is about... precision.", text_jp: "重要なのは……正確さだ。" },
@@ -197,6 +198,7 @@
                     { start: 24.5, end: 26.7, text_en: "Be warned.", text_jp: "心してかかれ。" },
                     { start: 26.8, end: 33.0, text_en: "Picking the wrong bottle will result in a catastrophe.", text_jp: "間違った瓶を選べば、大惨事になるからな。" }
                 ],
+                // Story Data (Voice: Japanese)
                 storyData_ja: [
                     { start: 0.0, end: 4.5, text_jp: "魔法っていうのは、ただ杖を振ればいいわけじゃない。", text_en: "Magic is not just about waving wands." },
                     { start: 5.0, end: 8.0, text_jp: "重要なのは、正確さだ。", text_en: "It is about... precision." },
@@ -344,45 +346,22 @@
             const [currentText, setCurrentText] = useState("");
             const [fade, setFade] = useState(true);
             const [showButton, setShowButton] = useState(false);
-            const storyVoiceRef = useRef(new Audio(voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3'));
+            const storyVoiceRef = useRef(new Audio());
             const [isPlaying, setIsPlaying] = useState(false);
             const [playFailed, setPlayFailed] = useState(false);
 
             useEffect(() => {
-                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
-                if (!storyVoiceRef.current.src.includes(src)) {
-                    storyVoiceRef.current.src = src;
-                }
+                const audio = storyVoiceRef.current;
+                const targetSrc = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
                 
-                storyVoiceRef.current.load(); // Reload audio source
-
-                if (chapterId === 1 && voiceLang !== 'off' && !masterMute) {
-                    storyVoiceRef.current.currentTime = 0;
-                    const playPromise = storyVoiceRef.current.play();
-                    if (playPromise !== undefined) {
-                        playPromise
-                            .then(() => {
-                                setIsPlaying(true);
-                                setPlayFailed(false);
-                            })
-                            .catch(error => {
-                                console.log("Autoplay prevented:", error);
-                                setPlayFailed(true);
-                            });
-                    }
+                // Only update src if changed
+                if (!audio.src || !audio.src.includes(targetSrc)) {
+                    audio.src = targetSrc;
+                    // Removed automatic load() to prevent resetting state if not needed
                 }
-                
-                return () => { 
-                    storyVoiceRef.current.pause(); 
-                    setIsPlaying(false);
-                };
-            }, [chapterId, voiceLang, masterMute]);
 
-            // Sync text with audio
-            useEffect(() => {
-                let interval;
-                const updateText = () => {
-                    const currentTime = storyVoiceRef.current.currentTime;
+                const handleTimeUpdate = () => {
+                    const currentTime = audio.currentTime;
                     const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
                     
                     if (subtitles) {
@@ -399,31 +378,46 @@
                         }
                     }
                     
-                    if (storyVoiceRef.current.ended || (storyVoiceRef.current.duration > 0 && currentTime >= storyVoiceRef.current.duration - 0.5)) {
+                    if (audio.ended || (audio.duration > 0 && currentTime >= audio.duration - 0.5)) {
                         setShowButton(true);
                     }
                 };
-
-                // Run updates even if play failed (manual start case) or playing
-                interval = setInterval(updateText, 100);
-
-                if (voiceLang === 'off') {
-                    if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
+                
+                const handleEnded = () => {
+                    setIsPlaying(false);
                     setShowButton(true);
-                }
+                };
 
-                return () => clearInterval(interval);
-            }, [currentText, data, subLang, voiceLang]); // Removed isPlaying to ensure text updates even if state desyncs
+                audio.addEventListener('timeupdate', handleTimeUpdate);
+                audio.addEventListener('ended', handleEnded);
 
-            useEffect(() => {
-                if (chapterId === 1) {
-                    if (voiceControl.voiceVolume > 0 && !masterMute) {
-                        storyVoiceRef.current.volume = voiceControl.voiceVolume;
-                    } else {
-                        storyVoiceRef.current.volume = 0;
+                // Attempt play if conditions met
+                if (chapterId === 1 && voiceLang !== 'off' && !masterMute) {
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise
+                            .then(() => {
+                                setIsPlaying(true);
+                                setPlayFailed(false);
+                            })
+                            .catch(error => {
+                                console.log("Autoplay prevented:", error);
+                                setIsPlaying(false);
+                                setPlayFailed(true);
+                            });
                     }
+                } else if (voiceLang === 'off') {
+                     // No voice logic, show skip/start button immediately
+                     if (!currentText && data.storyData_en) setCurrentText(data.storyData_en[0].text_en);
+                     setShowButton(true);
                 }
-            }, [voiceControl.voiceVolume, chapterId, masterMute]);
+
+                return () => {
+                    audio.pause();
+                    audio.removeEventListener('timeupdate', handleTimeUpdate);
+                    audio.removeEventListener('ended', handleEnded);
+                };
+            }, [chapterId, voiceLang, masterMute]);
 
             const handleManualStart = () => {
                 storyVoiceRef.current.play()
@@ -473,7 +467,7 @@
                                 onClick={handleManualStart} 
                                 className="px-6 py-3 border border-white/30 text-white text-sm tracking-widest uppercase hover:bg-white/10 transition-all animate-pulse"
                             >
-                                Tap to Start
+                                TAP TO START
                             </button>
                         </div>
                     ) : (
