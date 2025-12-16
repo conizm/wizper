@@ -108,7 +108,7 @@
         } catch (e) { console.error("Firebase init error (Ignored for demo):", e); }
 
         const PRELOAD_AUDIO = [
-            'music/click2.mp3', 'music/found.mp3', 'music/complete.mp3',
+            'SFX/click1.mp3', 'SFX/click2.mp3', 'music/found.mp3', 'music/complete.mp3',
             'voice/voice-focus.mp3', 'voice/voice-careful.mp3'
         ];
         const audioCache = {};
@@ -391,12 +391,14 @@
             const [isComplete, setIsComplete] = useState(false);
             const [showNotes, setShowNotes] = useState(false);
             const [showSettings, setShowSettings] = useState(false);
+            const [isProcessing, setIsProcessing] = useState(false); // Double tap prevention
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
             const currentTarget = targets[currentTargetIndex];
             const gameVoiceRef = useRef(new Audio());
             const [currentSubtitle, setCurrentSubtitle] = useState("");
             const subtitleTimeouts = useRef([]);
+            const voiceStartTime = useRef(0); // For tracking playback position
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
 
@@ -416,6 +418,7 @@
 
             useEffect(() => { let timer; if (isPlaying) { timer = setTimeout(() => setIsPlaying(false), 5000); } return () => clearTimeout(timer); }, [isPlaying]);
             
+            // Voice Playback Logic
             useEffect(() => {
                 if (!currentTarget) return;
                 
@@ -425,8 +428,10 @@
                 gameVoiceRef.current.src = voiceSrc;
                 setIsPlaying(false); 
 
+                // Slightly longer delay to ensure state and DOM are ready
                 if (!isComplete && voiceLang !== 'off') {
-                     setTimeout(() => handlePlayPause(true), 100);
+                     const timer = setTimeout(() => handlePlayPause(true), 200);
+                     return () => clearTimeout(timer);
                 }
 
                 return () => {
@@ -434,6 +439,53 @@
                     subtitleTimeouts.current.forEach(clearTimeout);
                 };
             }, [currentTargetIndex, chapterId, voiceLang]); 
+
+            // Subtitle Toggle Logic - Dynamic Update during playback
+            useEffect(() => {
+                if (isPlaying && !gameVoiceRef.current.paused) {
+                    // Clear existing subtitles
+                    subtitleTimeouts.current.forEach(clearTimeout);
+                    subtitleTimeouts.current = [];
+                    
+                    if (subLang === 'off') {
+                        setCurrentSubtitle("");
+                    } else {
+                        // Re-schedule subtitles based on current time
+                        if (!currentTarget) return;
+                        const subs = subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
+                        if (!subs) return;
+
+                        const defaultDurations = [4000, 4000, 4000, 4000, 4000];
+                        const durations = currentTarget.durations || defaultDurations;
+                        
+                        const currentTimeMS = gameVoiceRef.current.currentTime * 1000;
+                        let accumulatedTime = 0;
+
+                        subs.forEach((text, i) => {
+                            const duration = durations[i] || 4000;
+                            const startTime = accumulatedTime;
+                            const endTime = accumulatedTime + duration;
+
+                            if (currentTimeMS < endTime) {
+                                // If this subtitle is current or in future
+                                const delay = Math.max(0, startTime - currentTimeMS);
+                                
+                                const t1 = setTimeout(() => setCurrentSubtitle(text), delay);
+                                subtitleTimeouts.current.push(t1);
+                            }
+                            accumulatedTime += duration;
+                        });
+                        
+                        // Clear subtitle after last line
+                        const remainingTime = Math.max(0, accumulatedTime - currentTimeMS);
+                        const tEnd = setTimeout(() => {
+                            setCurrentSubtitle("");
+                            // We don't stop playback here, onended does that
+                        }, remainingTime);
+                        subtitleTimeouts.current.push(tEnd);
+                    }
+                }
+            }, [subLang]); // Re-run when subLang changes
 
             const handlePlayPause = (forcePlay = false) => {
                 if (isPlaying && !forcePlay) {
@@ -445,6 +497,8 @@
                     if (voiceLang === 'off') return;
                     gameVoiceRef.current.volume = 1.0; 
                     gameVoiceRef.current.currentTime = 0;
+                    voiceStartTime.current = Date.now(); // Track start time if needed, though currentTime is better
+                    
                     gameVoiceRef.current.play().catch(e => console.log("Play error (interaction might be needed)", e));
                     setIsPlaying(true);
                     
@@ -481,7 +535,16 @@
                 }
             };
 
+            useEffect(() => {
+                if (masterMute) {
+                    gameVoiceRef.current.pause();
+                    setIsPlaying(false);
+                }
+            }, [masterMute]);
+
             const handleImageClick = (e) => {
+                if (isProcessing || isComplete) return; // Prevent double tapping
+
                 const img = imageRef.current;
                 if (!img) return;
                 const rect = img.getBoundingClientRect();
@@ -511,14 +574,13 @@
                 
                 if (isDevMode) { setLastClickCoords({ x: xPercent, y: yPercent }); return; }
                 
-                if (isComplete) return;
-
                 const target = targets[currentTargetIndex];
                 if (!target) return;
 
                 const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
                 
                 if (dist < target.radius) {
+                    setIsProcessing(true); // Lock input
                     triggerFeedback(true);
                     
                     const newTargets = [...targets];
@@ -533,11 +595,13 @@
                     if (currentTargetIndex < targets.length - 1) {
                         setTimeout(() => {
                             setCurrentTargetIndex(prev => prev + 1);
+                            setIsProcessing(false); // Unlock
                         }, 1500);
                     } else {
                         setTimeout(() => {
                             setIsComplete(true);
                             audioActions.playComplete();
+                            setIsProcessing(false);
                         }, 1500);
                     }
                 } else {
@@ -641,13 +705,13 @@
                                 <div className="mb-4">
                                     <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
                                     <div className="flex flex-col gap-2">
-                                        <button onClick={() => settingsControl.setVoiceLang('off')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
                                         </button>
-                                        <button onClick={() => settingsControl.setVoiceLang('en')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
                                         </button>
-                                        <button onClick={() => settingsControl.setVoiceLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
                                         </button>
                                     </div>
@@ -656,13 +720,13 @@
                                 <div>
                                     <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
                                     <div className="flex flex-col gap-2">
-                                        <button onClick={() => settingsControl.setSubLang('off')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
                                         </button>
-                                        <button onClick={() => settingsControl.setSubLang('en')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
                                         </button>
-                                        <button onClick={() => settingsControl.setSubLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
+                                        <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className="flex items-center text-left hover:text-white transition-colors">
                                             {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
                                         </button>
                                     </div>
@@ -682,11 +746,11 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
-                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                            <button onClick={() => { setShowSettings(!showSettings); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 <SubtitleIcon size={20} className="text-[#f9f9f7]" />
                             </button>
                             
-                            <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                            <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
                                 {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
                         </div>
@@ -704,14 +768,14 @@
             useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
 
             const handleOpenJournal = () => {
-                audioActions.playClick();
+                audioActions.playClick(); // Click 1
                 const lastCleared = Math.max(0, ...clearedChapters);
                 const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
                 onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
             };
 
             const handleViewChange = (newView) => {
-                audioActions.playClick2();
+                audioActions.playClick2(); // Click 2
                 setView(newView);
             };
 
@@ -721,7 +785,7 @@
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
                     <div className="absolute top-6 right-6 z-50">
-                        <button onClick={bgmControl.toggleMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
+                        <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
                              {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                         </button>
                     </div>
@@ -787,8 +851,8 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.language}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setLanguage('en')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>English</button>
-                                    <button onClick={() => settingsControl.setLanguage('ja')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>日本語</button>
+                                    <button onClick={() => { settingsControl.setLanguage('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${lang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>English</button>
+                                    <button onClick={() => { settingsControl.setLanguage('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${lang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>日本語</button>
                                 </div>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
                             </div>
@@ -796,9 +860,9 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.subtitles}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setSubLang('off')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
-                                    <button onClick={() => settingsControl.setSubLang('en')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
-                                    <button onClick={() => settingsControl.setSubLang('ja')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 italic leading-relaxed">{t.subtitlesDesc}</p>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
@@ -807,9 +871,9 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.voice}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setVoiceLang('off')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
-                                    <button onClick={() => settingsControl.setVoiceLang('en')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
-                                    <button onClick={() => settingsControl.setVoiceLang('ja')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
                                 </div>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
                             </div>
@@ -867,8 +931,8 @@
             
             const homeBgmRef = useRef(new Audio('music/school-of-magic.mp3'));
             const gameBgmRef = useRef(new Audio('music/the-mischievous-wizard.mp3'));
-            const sfxClick = useRef(getAudio('music/click.mp3'));
-            const sfxClick2 = useRef(getAudio('music/click2.mp3'));
+            const sfxClick1 = useRef(getAudio('SFX/click1.mp3'));
+            const sfxClick2 = useRef(getAudio('SFX/click2.mp3'));
             const sfxFound = useRef(getAudio('music/found.mp3'));
             const sfxComplete = useRef(getAudio('music/complete.mp3'));
             const testVoiceRef = useRef(new Audio('music/testvoice.mp3'));
@@ -975,7 +1039,7 @@
             const playSfx = (type) => {
                 if (sfxVolume <= 0) return;
                 let audio = null;
-                if (type === 'click') audio = sfxClick.current;
+                if (type === 'click') audio = sfxClick1.current;
                 else if (type === 'click2') audio = sfxClick2.current;
                 else if (type === 'found') audio = sfxFound.current;
                 else if (type === 'complete') audio = sfxComplete.current;
