@@ -394,7 +394,7 @@
                     // Suppress verbose error for missing demo files
                     console.warn("Audio file not found or playback failed. Continuing without audio.");
                     setPlayFailed(true);
-                    setShowButton(true);
+                    // Do not auto-skip here; let user decide.
                 };
 
                 audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -550,6 +550,27 @@
                 };
             }, []);
             
+            const handlePlayPause = (forcePlay = false) => {
+                if (isPlaying && !forcePlay) {
+                    gameVoiceRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    if (voiceLang === 'off') return;
+                    if (masterMute) return;
+                    
+                    if (gameVoiceRef.current.paused && gameVoiceRef.current.currentTime > 0 && !gameVoiceRef.current.ended) {
+                        // resume
+                    } else {
+                        gameVoiceRef.current.currentTime = 0;
+                        gameVoiceRef.current.volume = 1.0; 
+                    }
+                    
+                    gameVoiceRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(e => console.log("Play error", e));
+                }
+            };
+
             useEffect(() => {
                 if (!currentTarget) return;
                 
@@ -561,10 +582,11 @@
                 setCurrentSubtitle("");
 
                 gameVoiceRef.current.src = voiceSrc;
-                gameVoiceRef.current.load();
+                // gameVoiceRef.current.load(); // redundant if src set
 
                 if (!isComplete && voiceLang !== 'off') {
-                     const timer = setTimeout(() => handlePlayPause(true), 200);
+                     // Using a slight delay to ensure src is ready and avoid race conditions
+                     const timer = setTimeout(() => handlePlayPause(true), 300);
                      return () => clearTimeout(timer);
                 }
 
@@ -594,26 +616,6 @@
                 }
                 return () => clearInterval(interval);
             }, [isPlaying, subLang, currentTarget, voiceLang]);
-
-            const handlePlayPause = (forcePlay = false) => {
-                if (isPlaying && !forcePlay) {
-                    gameVoiceRef.current.pause();
-                    setIsPlaying(false);
-                } else {
-                    if (voiceLang === 'off') return;
-                    if (masterMute) return;
-                    
-                    if (gameVoiceRef.current.paused && gameVoiceRef.current.currentTime > 0 && !gameVoiceRef.current.ended) {
-                    } else {
-                        gameVoiceRef.current.currentTime = 0;
-                        gameVoiceRef.current.volume = 1.0; 
-                    }
-                    
-                    gameVoiceRef.current.play()
-                        .then(() => setIsPlaying(true))
-                        .catch(e => console.log("Play error", e));
-                }
-            };
 
             useEffect(() => {
                 if (masterMute) {
