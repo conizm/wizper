@@ -350,7 +350,7 @@
 
             useEffect(() => {
                 const audio = storyVoiceRef.current;
-                const src = voiceLang === 'ja' ? 'story/c1-story-jp.mp3' : 'story/c1-story-en.mp3';
+                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
                 
                 // Only update src if changed
                 if (!audio.src || !audio.src.includes(src)) {
