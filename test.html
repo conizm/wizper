@@ -1,25 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Wizper - Audio Hidden Object Game</title>
     
-    <!-- PWA Settings -->
-    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- React & Tailwind -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Lato:wght@300;400&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
 
     <style>
@@ -33,185 +34,55 @@
             overflow: hidden;
             overscroll-behavior: none;
         }
-        h1, h2, .font-serif {
-            font-family: 'Cinzel', serif;
-        }
-        .font-script {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-        }
+        h1, h2, .font-serif { font-family: 'Cinzel', serif; }
+        .font-script { font-family: 'Playfair Display', serif; font-style: italic; }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes wipeIn { 0% { opacity: 1; clip-path: inset(0 100% 0 0); } 100% { opacity: 1; clip-path: inset(0 0 0 0); } }
+        @keyframes breathe { 0%, 100% { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); } 50% { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); } }
+        @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }
 
-        @keyframes floatUp {
-            0% { 
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            100% { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes wipeIn { 
-            0% { opacity: 1; clip-path: inset(0 100% 0 0); } 
-            100% { opacity: 1; clip-path: inset(0 0 0 0); } 
-        }
-
-        .anim-fade-in {
-            opacity: 0;
-            animation: fadeIn 2.0s ease-out forwards;
-        }
-
-        .anim-fade-in-bg {
-            opacity: 0;
-            animation: fadeIn 5.0s ease-out forwards;
-        }
+        .anim-fade-in { opacity: 0; animation: fadeIn 2.0s ease-out forwards; }
+        .anim-fade-in-bg { opacity: 0; animation: fadeIn 5.0s ease-out forwards; }
 
         .glass-float-container {
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px);              
-            -webkit-backdrop-filter: blur(5px);      
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            opacity: 0;
-            animation: floatUp 1.5s ease-out forwards;
-            transform: translateZ(0); 
+            opacity: 0; animation: floatUp 1.5s ease-out forwards;
+            transform: translateZ(0);
         }
-
-        .glass-wipe-anim {
-            opacity: 0;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);      
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            animation: wipeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transform: translateZ(0); border-radius: 2px; overflow: hidden; 
-        }
-
-        @keyframes breathe { 
-            0%, 100% { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); } 
-            50% { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); } 
-        }
-        @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }
 
         .overlay-container {
-            position: absolute;
-            inset: 0;
-            z-index: 50;
+            position: absolute; inset: 0; z-index: 50;
             background-color: rgba(26, 26, 26, 0.98);
             padding-top: max(3rem, env(safe-area-inset-top));
             padding-bottom: env(safe-area-inset-bottom, 20px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease-out;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
+        .overlay-container.active { opacity: 1; pointer-events: auto; }
         
-        .overlay-container.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
         
-        .custom-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #444; 
-            border-radius: 2px;
-        }
-        
-        .mb-safe {
-            margin-bottom: env(safe-area-inset-bottom, 20px);
-        }
-        .pb-safe {
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-        }
-        
+        .mb-safe { margin-bottom: env(safe-area-inset-bottom, 20px); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
         .game-viewport { touch-action: none; background-color: #000; }
 
-        /* Custom Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-            height: 24px;
-            cursor: pointer;
-        }
-        input[type=range]:focus {
-            outline: none;
-        }
-        /* Webkit (Chrome, Safari, Edge) */
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 1px;
-            border: none;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #f9f9f7;
-            border: none;
-            -webkit-appearance: none;
-            margin-top: -5px; /* (trackHeight / 2) - (thumbHeight / 2) */
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-        /* Firefox */
-        input[type=range]::-moz-range-track {
-            width: 100%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 1px;
-            border: none;
-        }
-        input[type=range]::-moz-range-thumb {
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #f9f9f7;
-            border: none;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 24px; cursor: pointer; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: rgba(255, 255, 255, 0.2); border-radius: 1px; border: none; }
+        input[type=range]::-webkit-slider-thumb { height: 12px; width: 12px; border-radius: 50%; background: #f9f9f7; border: none; -webkit-appearance: none; margin-top: -5px; box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
         
-        /* Accordion transition */
-        .accordion-content {
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-        }
-        .accordion-content.open {
-            max-height: 500px;
-            opacity: 1;
-        }
-
-        /* Checkmark Style */
-        .check-icon {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            margin-right: 4px;
-            color: #4ade80; /* green-400 */
-        }
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
+        .accordion-content.open { max-height: 500px; opacity: 1; }
+        .check-icon { display: inline-block; width: 12px; height: 12px; margin-right: 4px; color: #4ade80; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e));
-            });
-        }
-    </script>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -224,131 +95,76 @@
             messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
-
         let auth = null;
         let db = null;
         let googleProvider = null;
-
         try {
-            if (firebase.apps.length === 0 && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+            if (typeof firebase !== 'undefined' && firebase.apps.length === 0 && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
                 firebase.initializeApp(FIREBASE_CONFIG);
                 auth = firebase.auth();
                 db = firebase.firestore();
                 googleProvider = new firebase.auth.GoogleAuthProvider();
             }
-        } catch (e) {
-            console.error("Firebase init error:", e);
-        }
+        } catch (e) { console.error("Firebase init error (Ignored for demo):", e); }
 
         const PRELOAD_AUDIO = [
-            'music/click2.mp3',
-            'music/found.mp3',
-            'music/complete.mp3',
-            'voice/voice-incorrect.mp3',
-            'voice/voice-focus.mp3',
-            'voice/voice-careful.mp3',
-            'voice/c1/c1-q1-jp.mp3',
-            'voice/c1/c1-q2-jp.mp3',
-            'voice/c1/c1-q3-jp.mp3'
+            'SFX/click1.mp3', 'SFX/click2.mp3', 'music/found.mp3', 'music/complete.mp3',
+            'voice/voice-focus.mp3', 'voice/voice-careful.mp3'
         ];
+        const audioCache = {};
+        const getAudio = (url) => {
+            if (!audioCache[url]) {
+                const a = new Audio(url);
+                a.preload = 'auto';
+                audioCache[url] = a;
+            }
+            return audioCache[url];
+        };
+        PRELOAD_AUDIO.forEach(url => getAudio(url));
 
         const TRANSLATIONS = {
             en: {
                 appSubtitle: "- The Apprentice's Work -",
                 introText: "\"Listen carefully, apprentice.\nMy eyes aren't what they used to be...\"",
-                beginButton: "Begin Work",
-                logButton: "Log",
-                guideButton: "Guide",
-                settingsTitle: "Settings",
-                workLogTitle: "Work Log",
-                workLogDesc: "Record of assigned work.",
-                chapter: "Chapter",
-                available: "Available",
-                guideTitle: "Guide",
-                guideIntro: "\"Find the hidden objects.\"",
-                guideListenTitle: "Listen",
-                guideListenDesc: "Hear the voice instructions.",
-                guideSearchTitle: "Search",
-                guideSearchDesc: "Tap to find item.",
-                guideSelectTitle: "Select",
-                guideSelectDesc: "Tap correct item to collect.",
-                cloudSave: "Cloud Save",
-                signInGoogle: "Sign in with Google",
-                signInDesc: "Sign in to save your progress across devices.",
-                progressSaved: "Progress Saved",
-                signOut: "Sign Out",
-                subtitles: "Subtitles",
-                subtitlesDesc: "* We recommend playing with subtitles OFF for the best immersive experience.",
-                sound: "Sound",
-                bgm: "BGM",
-                voice: "Voice",
-                sfx: "SFX",
-                language: "Language",
-                privacyPolicy: "Privacy Policy",
-                giftCoffee: "Gift a Coffee",
-                back: "Back",
-                itemsLeft: "Items Left",
-                complete: "Complete",
-                nextChapter: "Next Chapter",
-                speaking: "Speaking...",
-                listenOrder: "Listen to order",
-                found: "You got it!",
-                notFound: "Not that one...",
+                beginButton: "Begin Work", logButton: "Log", guideButton: "Guide",
+                settingsTitle: "Settings", workLogTitle: "Work Log", workLogDesc: "Record of assigned work.",
+                chapter: "Chapter", available: "Available",
+                guideTitle: "Guide", guideIntro: "\"Find the hidden objects.\"",
+                guideListenTitle: "Listen", guideListenDesc: "Hear the voice instructions.",
+                guideSearchTitle: "Search", guideSearchDesc: "Tap to find item.",
+                guideSelectTitle: "Select", guideSelectDesc: "Tap correct item to collect.",
+                cloudSave: "Cloud Save", signInGoogle: "Sign in with Google", signInDesc: "Sign in to save your progress across devices.",
+                progressSaved: "Progress Saved", signOut: "Sign Out",
+                subtitles: "Subtitles", subtitlesDesc: "* We recommend playing with subtitles OFF for the best immersive experience.",
+                sound: "Sound", bgm: "BGM", voice: "Voice", sfx: "SFX", language: "Language",
+                privacyPolicy: "Privacy Policy", giftCoffee: "Gift a Coffee", back: "Back",
+                itemsLeft: "Items Left", complete: "Complete", nextChapter: "Next Chapter",
+                speaking: "Speaking...", listenOrder: "Listen to order",
+                found: "You got it!", notFound: "No that one.",
                 congrats: "Congratulations! You've reached the end of current content.",
-                beginSearch: "Begin Search",
-                skip: "Skip",
-                off: "OFF",
-                english: "English",
-                japanese: "日本語",
+                beginSearch: "Begin Search", skip: "Skip", off: "OFF", english: "English", japanese: "日本語",
                 notesTitle: "Apprentice's Notes"
             },
             ja: {
                 appSubtitle: "- The Apprentice's Work -",
                 introText: "「よく聞け、見習いよ。\n私の目はもう昔のようには見えん…」",
-                beginButton: "仕事にかかる",
-                logButton: "記録",
-                guideButton: "手引き",
-                settingsTitle: "設定",
-                workLogTitle: "業務記録",
-                workLogDesc: "割り当てられた仕事の記録",
-                chapter: "章",
-                available: "挑戦可能",
-                guideTitle: "手引き",
-                guideIntro: "「隠されたアイテムを見つけ出せ」",
-                guideListenTitle: "聞く",
-                guideListenDesc: "声の指示に耳を傾ける",
-                guideSearchTitle: "探す",
-                guideSearchDesc: "タップしてアイテムを見つける",
-                guideSelectTitle: "選ぶ",
-                guideSelectDesc: "正しいアイテムをタップして回収する",
-                cloudSave: "クラウドセーブ",
-                signInGoogle: "Googleでサインイン",
-                signInDesc: "進捗を保存して別端末でもプレイ",
-                progressSaved: "保存済み",
-                signOut: "サインアウト",
-                subtitles: "字幕",
-                subtitlesDesc: "* 没入感を高めるため、字幕OFFを推奨します",
-                sound: "サウンド",
-                bgm: "BGM",
-                voice: "ボイス",
-                sfx: "効果音",
-                language: "言語",
-                privacyPolicy: "プライバシーポリシー",
-                giftCoffee: "コーヒーを贈る",
-                back: "戻る",
-                itemsLeft: "残り",
-                complete: "完了",
-                nextChapter: "次の章へ",
-                speaking: "詠唱中...",
-                listenOrder: "指示を聞く",
-                found: "正解！",
-                notFound: "それではない...",
+                beginButton: "仕事にかかる", logButton: "記録", guideButton: "手引き",
+                settingsTitle: "設定", workLogTitle: "業務記録", workLogDesc: "割り当てられた仕事の記録",
+                chapter: "章", available: "挑戦可能",
+                guideTitle: "手引き", guideIntro: "「隠されたアイテムを見つけ出せ」",
+                guideListenTitle: "聞く", guideListenDesc: "声の指示に耳を傾ける",
+                guideSearchTitle: "探す", guideSearchDesc: "タップしてアイテムを見つける",
+                guideSelectTitle: "選ぶ", guideSelectDesc: "正しいアイテムをタップして回収する",
+                cloudSave: "クラウドセーブ", signInGoogle: "Googleでサインイン", signInDesc: "進捗を保存して別端末でもプレイ",
+                progressSaved: "保存済み", signOut: "サインアウト",
+                subtitles: "字幕", subtitlesDesc: "* 没入感を高めるため、字幕OFFを推奨します",
+                sound: "サウンド", bgm: "BGM", voice: "ボイス", sfx: "効果音", language: "言語",
+                privacyPolicy: "プライバシーポリシー", giftCoffee: "コーヒーを贈る", back: "戻る",
+                itemsLeft: "残り", complete: "完了", nextChapter: "次の章へ",
+                speaking: "詠唱中...", listenOrder: "指示を聞く",
+                found: "正解！", notFound: "No that one.",
                 congrats: "おめでとう！現在のコンテンツはここまでだ。",
-                beginSearch: "調査開始",
-                skip: "スキップ",
-                off: "OFF",
-                english: "English",
-                japanese: "日本語",
+                beginSearch: "調査開始", skip: "スキップ", off: "OFF", english: "English", japanese: "日本語",
                 notesTitle: "見習いのメモ"
             }
         };
@@ -365,130 +181,124 @@
 
         const CHAPTERS_DB = {
             1: {
-                id: 1,
-                title: "The Dusty Shelf",
-                title_ja: "埃かぶった小瓶たち",
-                sub: "Study Room",
-                sub_ja: "書斎",
-                storyLines: [
-                    "...Magic... is not just about waving wands, my Apprentice.",
-                    "It is about...precision.",
-                    "I require a few specific potions from this cluttered shelf.",
-                    "Listen closely to my instructions... and bring me only the ones I ask for.",
-                    "...Be warned. Picking the wrong bottle... will result in a catastrophe."
-                ],
-                storyLines_ja: [
-                    "魔法とは、単に杖を振り回すことではないぞ、弟子よ。",
-                    "重要なのは……『正確さ』じゃ。",
-                    "この散らかった棚から、 ワシが必要とする『いくつかの薬瓶』を取ってきておくれ。",
-                    "ワシの指示をよく聞き、 『正解の薬』だけを持ってくるんじゃぞ。",
-                    "心してかかれ。 間違った瓶を選べば……大惨事じゃ。"
-                ],
-                mission: "- Find 3 hidden items -",
-                mission_ja: "- 3つのアイテムを探せ -",
+                id: 1, title: "The Dusty Shelf", title_ja: "埃かぶった小瓶たち",
+                sub: "Study Room", sub_ja: "書斎",
+                mission: "- Find 3 hidden items -", mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://conizm.github.io/wizper/images/c1photo_1.png",
-                script: "First, find the old key... yes, look down low. Then the strange stone, the mark, the sand, and finally the coin at the top.",
                 completionText: "Well done. You have keen eyes, unlike my previous apprentice...",
                 completionText_ja: "よくやった。前の見習いとは違っていい目をしている...",
+                
+                storyData_en: [
+                    { start: 2.2, end: 7.4, text_en: "Magic is not just about waving wands, my apprentice.", text_jp: "魔法というのは、ただ杖を振ればいいわけじゃない。" },
+                    { start: 7.5, end: 11.4, text_en: "It is about... precision.", text_jp: "重要なのは……正確さだ。" },
+                    { start: 11.5, end: 16.9, text_en: "I require a few specific potions from this cluttered shelf.", text_jp: "この散らかった棚から、いくつか特定の薬瓶を取ってきてほしい。" },
+                    { start: 17.0, end: 20.0, text_en: "Listen closely to my instructions,", text_jp: "私の指示をよく聞き、" },
+                    { start: 20.1, end: 24.4, text_en: "and bring me only the ones I ask for.", text_jp: "私が頼んだものだけを持ってくるんだ。" },
+                    { start: 24.5, end: 26.7, text_en: "Be warned.", text_jp: "心してかかれ。" },
+                    { start: 26.8, end: 33.0, text_en: "Picking the wrong bottle will result in a catastrophe.", text_jp: "間違った瓶を選べば、大惨事になるからな。" }
+                ],
+                storyData_ja: [
+                    { start: 0.0, end: 4.5, text_jp: "魔法っていうのは、ただ杖を振ればいいわけじゃない。", text_en: "Magic is not just about waving wands." },
+                    { start: 5.0, end: 8.0, text_jp: "重要なのは、正確さだ。", text_en: "It is about... precision." },
+                    { start: 9.0, end: 14.5, text_jp: "この散らかった棚から、私が必要としているいくつかの薬瓶を取ってきてほしい。", text_en: "I require a few specific potions from this cluttered shelf." },
+                    { start: 15.0, end: 20.0, text_jp: "指示をよく聞いて、正解の薬だけを持ってくるんだ。", text_en: "Listen closely, and bring me only the ones I ask for." },
+                    { start: 20.5, end: 21.5, text_jp: "いいね？", text_en: "Understood?" },
+                    { start: 22.0, end: 23.5, text_jp: "心してかかってくれ。", text_en: "Be warned." },
+                    { start: 24.0, end: 28.0, text_jp: "間違った瓶を選べば、大惨事になるからな。", text_en: "Picking the wrong bottle will result in a catastrophe." }
+                ],
+
                 targets: [
                     { 
-                        id: 1, 
-                        name: "bottle1", 
-                        x: 51.4, y: 60.7, radius: 7, 
-                        found: false,
-                        voice: "voice/c1/c1-q1.mp3",
-                        voice_ja: "voice/c1/c1-q1-jp.mp3",
-                        subtitles_en: [
-                            "...Your first trial. Observe the shelves closely.",
-                            "Burlap covers many jars here... but there is... one shelf...",
-                            "that is completely naked... devoid of any burlap lids.",
-                            "Find that... silent shelf.",
-                            "Once you have found it... bring me the vial sealed with... Brown Wax.",
-                            "That... is the only truth I seek."
+                        id: 1, name: "bottle1", x: 51, y: 60, radius: 12, found: false,
+                        voice: "voice/c1-q1-en.mp3",
+                        voice_ja: "voice/c1-q1-jp.mp3", 
+                        subtitleData_en: [
+                            { start: 2.2, end: 4.3, text_en: "Your first trial.", text_jp: "最初の試練だ。" },
+                            { start: 4.4, end: 7.4, text_en: "Observe the shelves closely.", text_jp: "棚をよく見てくれ。" },
+                            { start: 7.5, end: 11.1, text_en: "Burlap covers many jars here,", text_jp: "ここには麻の布で覆われた瓶が多いが、" },
+                            { start: 11.2, end: 16.7, text_en: "but there is one shelf that is completely naked,", text_jp: "麻の布の蓋が一つもない、完全にむき出しの棚が、" },
+                            { start: 16.8, end: 19.9, text_en: "devoid of any burlap lids.", text_jp: "たった一段だけあるはずだ。" },
+                            { start: 20.0, end: 24.7, text_en: "Find that... silent shelf.", text_jp: "その……沈黙の棚を見つけ出してくれ。" },
+                            { start: 24.8, end: 26.9, text_en: "Once you have found it,", text_jp: "見つけたら、" },
+                            { start: 27.0, end: 31.4, text_en: "bring me the vial sealed with brown wax.", text_jp: "茶色のロウソクで封された瓶を持ってくるんだ。" },
+                            { start: 31.5, end: 38.0, text_en: "That is the only truth I seek.", text_jp: "それだけが、私の求める真実だ。" }
                         ],
-                        subtitles_ja: [
-                            "最初の試練じゃ。棚をよく見るがいい。",
-                            "ここには麻布で覆われた瓶が多いが……『麻布の蓋が一つもない棚』が、たった一段だけある。",
-                            "まずはその「沈黙の棚」を見つけ出すのじゃ。",
-                            "見つけたら……その棚にある『茶色の封蝋』で封じられた瓶を持ってこい。",
-                            "それだけが、ワシの求める真実じゃ。"
-                        ],
-                        durations: [6000, 7000, 4000, 8000, 5000]
+                        subtitleData_ja: [
+                            { start: 1.2, end: 3.1, text_jp: "最初の試練だ。", text_en: "Your first trial." },
+                            { start: 3.2, end: 5.4, text_jp: "棚をよく見てくれ。", text_en: "Observe the shelves closely." },
+                            { start: 5.5, end: 9.9, text_jp: "ここには麻の布で覆われた瓶が多いが、", text_en: "Burlap covers many jars here," },
+                            { start: 10.0, end: 15.1, text_jp: "麻の布の蓋が一つもない棚が、", text_en: "but there is one shelf devoid of burlap lids," },
+                            { start: 15.2, end: 17.9, text_jp: "たった一段だけあるはずだ。", text_en: "just one completely naked shelf." },
+                            { start: 18.0, end: 22.4, text_jp: "まずはその、沈黙の棚を見つけ出してくれ。", text_en: "Find that... silent shelf." },
+                            { start: 22.5, end: 24.1, text_jp: "見つけたら、", text_en: "Once you have found it," },
+                            { start: 24.2, end: 29.9, text_jp: "その棚にある、茶色のロウソクで封された瓶を持ってきてほしい。", text_en: "bring me the vial sealed with brown wax from that shelf." },
+                            { start: 30.0, end: 37.0, text_jp: "それだけが、私の求める真実だ。", text_en: "That is the only truth I seek." }
+                        ]
                     },
                     { 
-                        id: 2, 
-                        name: "bottle2", 
-                        x: 30.7, y: 38.3, radius: 7, 
-                        found: false,
-                        voice: "voice/c1/c1-q2.mp3",
-                        voice_ja: "voice/c1/c1-q2-jp.mp3",
-                        subtitles_en: [
-                            "Numbers never lie, my Apprentice.",
-                            "Count the vials containing Blue Liquid in the entire cabinet.",
-                            "That number tells you exactly which shelf to look at. From top to bottom.",
-                            "Have you found the shelf?",
-                            "Then, ignore the colors. Just bring me the one bottle on that shelf covered in Burlap.",
-                            "Simple...is it not?"
+                        id: 2, name: "bottle2", x: 38.5, y: 38.3, radius: 15, found: false,
+                        voice: "voice/c1-q2-en.mp3",
+                        voice_ja: "voice/c1-q2-jp.mp3",
+                        subtitleData_en: [
+                            { start: 0.8, end: 2.9, text_en: "Numbers never lie, my boy.", text_jp: "数字は嘘をつかない。" },
+                            { start: 3.0, end: 7.2, text_en: "Count the vials containing clear, blue liquid", text_jp: "透明で青い液体の入った瓶を数えてみてくれ、" },
+                            { start: 7.3, end: 9.9, text_en: "in the entire cabinet.", text_jp: "この棚全体にある分を。" },
+                            { start: 10.0, end: 15.9, text_en: "That number tells you exactly which shelf to look at.", text_jp: "その数が、見るべき棚の段数を正確に示している。" },
+                            { start: 16.0, end: 18.4, text_en: "From top... to bottom.", text_jp: "上から……下へ向かって数えるんだ。" },
+                            { start: 18.5, end: 20.9, text_en: "Have you found the shelf?", text_jp: "棚は分かったかい？" },
+                            { start: 21.0, end: 23.4, text_en: "Then, ignore the colors.", text_jp: "なら、色は無視していい。" },
+                            { start: 23.5, end: 29.4, text_en: "Just bring me the one bottle on that shelf covered in burlap.", text_jp: "その棚にある、麻の布で覆われた瓶を一つ持ってくるんだ。" },
+                            { start: 29.5, end: 33.0, text_en: "Simple, is it not?", text_jp: "単純な話だろう？" }
                         ],
-                        subtitles_ja: [
-                            "数字は嘘をつかないぞ、若いの。 この棚全体にある、『青い液体の瓶』を数えるのじゃ。",
-                            "その数が……正解の瓶がある『段』を示しておる。上から順にな。",
-                            "棚はわかったか？",
-                            "ならば色は忘れて、その棚にある『麻布』で蓋をされた瓶を取ってこい。",
-                            "……単純なことじゃろう？"
-                        ],
-                        durations: [6000, 7000, 4000, 8000, 5000]
+                        subtitleData_ja: [
+                            { start: 0.5, end: 2.9, text_jp: "数字は嘘をつかない。", text_en: "Numbers never lie." },
+                            { start: 3.0, end: 7.9, text_jp: "この棚全体にある、青い液体の瓶を数えてみてくれ。", text_en: "Count the vials containing clear, blue liquid in the entire cabinet." },
+                            { start: 8.0, end: 12.4, text_jp: "その数が、正解の瓶がある段を示している。", text_en: "That number tells you exactly which shelf to look at." },
+                            { start: 12.5, end: 15.4, text_jp: "段は上から数えてくれ。", text_en: "Count from top... to bottom." },
+                            { start: 15.5, end: 17.9, text_jp: "棚は分かったかい？", text_en: "Have you found the shelf?" },
+                            { start: 18.0, end: 20.4, text_jp: "なら色は忘れていい。", text_en: "Then, ignore the colors." },
+                            { start: 20.5, end: 25.4, text_jp: "その棚にある、麻の布の蓋の瓶を取ってこい。", text_en: "Bring me the one bottle on that shelf covered in burlap." },
+                            { start: 25.5, end: 30.5, text_jp: "単純な話だろう？", text_en: "Simple, is it not?" }
+                        ]
                     },
                     { 
-                        id: 3, 
-                        name: "bottle3", 
-                        x: 89.1, y: 58.4, radius: 7, 
-                        found: false,
-                        voice: "voice/c1/c1-q3.mp3",
-                        voice_ja: "voice/c1/c1-q3-jp.mp3",
-                        subtitles_en: [
-                            "The final test. A journey for your finger.",
-                            "Start at the very top shelf on the far left bottle... with the Red Wax.",
-                            "Now... move Right by the total number of Burlap lids in the cabinet. Are you there?",
-                            "Good. Now drop Down by the total number of Blue potions.",
-                            "Take the bottle your finger landed on. Do not hesitate."
+                        id: 3, name: "bottle3", x: 75.5, y: 62.3, radius: 12, found: false,
+                        voice: "voice/c1-q3-en.mp3",
+                        voice_ja: "voice/c1-q3-jp.mp3",
+                        subtitleData_en: [
+                            { start: 0.0, end: 1.9, text_en: "The final test.", text_jp: "最後の試練だ。" },
+                            { start: 2.0, end: 4.4, text_en: "A journey for your finger.", text_jp: "指をさしながらついてきてくれ。" },
+                            { start: 4.5, end: 8.2, text_en: "Start at the very top shelf, on the far left bottle,", text_jp: "スタートは一番上の段、その左端にある瓶だ。" },
+                            { start: 8.3, end: 10.9, text_en: "with the red wax.", text_jp: "赤いロウソクのついたやつだ。" },
+                            { start: 11.0, end: 17.9, text_en: "Now, move right by the total number of burlap lids in the cabinet.", text_jp: "そこから右へ、棚全体にある麻の布の蓋の数だけ移動してくれ。" },
+                            { start: 18.0, end: 19.9, text_en: "Are you there?", text_jp: "移動したかい？" },
+                            { start: 20.0, end: 21.4, text_en: "Good.", text_jp: "いいぞ。" },
+                            { start: 21.5, end: 27.1, text_en: "Now drop down by the total number of blue potions.", text_jp: "次はそこから真下へ、青い薬瓶の総数だけ降りるんだ。" },
+                            { start: 27.2, end: 30.4, text_en: "Take the bottle your finger landed on.", text_jp: "指が止まった場所にある、その瓶を取れ。" },
+                            { start: 30.5, end: 34.0, text_en: "Do not hesitate.", text_jp: "迷わずにな。" }
                         ],
-                        subtitles_ja: [
-                            "最後の試練じゃ。指を使って旅をするがよい。",
-                            "スタートは、一番上の段……その左端にある『赤い封蝋の瓶』じゃ。",
-                            "そこから『右』へ移動せよ。進む数は……棚全体にある『麻布の蓋』の数だけじゃ。 ……進んだか？",
-                            "では、そこから『真下』へ落ちよ。落ちる段数は……",
-                            "棚全体にある『青い液体』の数だけ下へ。",
-                            "……指が止まった場所にある、その瓶を取るのじゃ。迷うでないぞ。"
-                        ],
-                        durations: [6000, 7000, 4000, 8000, 5000]
-                    },
+                        subtitleData_ja: [
+                            { start: 0.0, end: 1.9, text_jp: "最後の試練だ。", text_en: "The final test." },
+                            { start: 2.0, end: 4.9, text_jp: "指をさしながらついてきてくれ。", text_en: "A journey for your finger." },
+                            { start: 5.0, end: 7.7, text_jp: "スタートは一番上の段、", text_en: "Start at the very top shelf," },
+                            { start: 7.8, end: 12.9, text_jp: "その左端にある、赤いロウソクで封じられた瓶だ。", text_en: "on the far left bottle with the red wax." },
+                            { start: 13.0, end: 15.9, text_jp: "そこから右へ移動してくれ。", text_en: "Now, move right..." },
+                            { start: 16.0, end: 21.9, text_jp: "進む数は、棚全体にある麻の布の蓋の数だけだ。", text_en: "...by the total number of burlap lids in the cabinet." },
+                            { start: 22.0, end: 23.9, text_jp: "進んだかい？", text_en: "Are you there?" },
+                            { start: 24.0, end: 27.4, text_jp: "次はそこから真下へ降りてくれ。", text_en: "Now drop down..." },
+                            { start: 27.5, end: 34.4, text_jp: "降りる段数は、棚全体にある青い液体の数だけ下へ。", text_en: "...by the total number of blue potions." },
+                            { start: 34.5, end: 38.4, text_jp: "指が止まった場所にある、その瓶を取るんだ。", text_en: "Take the bottle your finger landed on." },
+                            { start: 38.5, end: 43.5, text_jp: "迷わずにな。", text_en: "Do not hesitate." }
+                        ]
+                    }
                 ]
             },
             2: {
-                id: 2,
-                title: "Greenhouse",
-                title_ja: "温室",
-                sub: "Herbs & Roots",
-                sub_ja: "薬草と根",
-                storyLines: [
-                    "Be careful in here.",
-                    "The Mandrakes are light sleepers.",
-                    "I need ingredients for a silencing potion.",
-                    "Don't break anything."
-                ],
-                storyLines_ja: [
-                    "ここでは慎重にな。",
-                    "マンドレイクは眠りが浅い。",
-                    "沈黙の薬の材料が必要なのだ。",
-                    "何も壊すなよ。"
-                ],
-                mission: "- Find 3 hidden items -",
-                mission_ja: "- 3つのアイテムを探せ -",
+                id: 2, title: "Greenhouse", title_ja: "温室", sub: "Herbs & Roots", sub_ja: "薬草と根",
+                mission: "- Find 3 hidden items -", mission_ja: "- 3つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2400&auto=format&fit=crop", 
-                script: "Find the red flower on the left, the trowel in the middle, and the watering can on the right.",
-                completionText: "Excellent work. These roots are fresh. Now, to the cauldron.",
-                completionText_ja: "素晴らしい。根も新鮮だ。さあ、大鍋へ向かうぞ。",
+                completionText: "Excellent work. These roots are fresh. Now, to the cauldron.", completionText_ja: "素晴らしい。根も新鮮だ。さあ、大鍋へ向かうぞ。",
+                storyData_en: [ { start: 0, end: 5, text_en: "Be careful in here. The Mandrakes are light sleepers.", text_jp: "ここでは慎重にな。マンドレイクは眠りが浅い。" } ],
                 targets: [
                     { id: 1, name: "Red Flower", name_ja: "赤い花", x: 20, y: 50, radius: 10, found: false },
                     { id: 2, name: "Trowel", name_ja: "コテ", x: 50, y: 50, radius: 10, found: false },
@@ -497,162 +307,158 @@
             },
             3: {
                 id: 3, title: "Midnight Market", title_ja: "真夜中の市場", sub: "Rare Artifacts", sub_ja: "希少な遺物",
-                storyLines: ["The merchant is waiting.", "Find the items before he changes his mind."],
-                storyLines_ja: ["商人が待っている。", "気が変わる前に品物を見つけるのだ。"],
                 mission: "- Find 4 hidden items -", mission_ja: "- 4つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=2400",
-                script: "Dummy script.", targets: [], completionText: "You are becoming useful.", completionText_ja: "役に立つようになってきたな。"
+                storyData_en: [ { start: 0, end: 5, text_en: "The merchant is waiting.", text_jp: "商人が待っている。" } ],
+                targets: [], completionText: "You are becoming useful.", completionText_ja: "役に立つようになってきたな。"
             },
             4: {
                 id: 4, title: "Ritual Chamber", title_ja: "儀式の間", sub: "The Grand Spell", sub_ja: "壮大なる呪文",
-                storyLines: ["The stars align.", "Precision is everything."],
-                storyLines_ja: ["星々が直列する。", "正確さが全てだ。"],
                 mission: "- Find 5 hidden items -", mission_ja: "- 5つのアイテムを探せ -",
                 imageUrl: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2400",
-                script: "Dummy script.", targets: [], completionText: "The spell is complete.", completionText_ja: "呪文は完成した。"
+                storyData_en: [ { start: 0, end: 5, text_en: "The stars align.", text_jp: "星々が直列する。" } ],
+                targets: [], completionText: "The spell is complete.", completionText_ja: "呪文は完成した。"
             }
         };
 
-        const SettingsIcon = ({ size = 20 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-        );
-        const BookIcon = ({ size = 20 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        );
-        const LockIcon = ({ size = 16 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        );
-        const EarIcon = ({ size = 20 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0v5"/><path d="M18 19a3 3 0 0 1-6 0v-2h6v2z"/><path d="M6 19v-2h6"/></svg>
-        );
-        const CoffeeIcon = ({ size = 18 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-        );
-        const GoogleIcon = ({ size = 16 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.04-1.133 8.133-3.293 2.147-2.147 2.813-5.173 2.813-7.627 0-.76-.08-1.467-.173-2.16H12.48z"/></svg>
-        );
-        const Play = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><polygon points="7 4 21 12 7 20"/></svg>);
-        const Pause = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>);
-        const MusicNote = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>);
-        const MusicOff = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>);
-        const Speaker = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>);
-        const SpeakerOff = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M10.8 5.8L6 9H2v6h4l5 5V19.2"></path></svg>);
-        const Mic = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>);
-        const MicOff = ({ size = 22, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>);
-        const RefreshIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>);
-        const LangIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg>);
-        const SubtitleIcon = ({ size = 20, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="12" y2="13"/></svg>);
-        const Sparkles = ({ size = 24, fill="currentColor" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="none"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>);
-        const ArrowLeft = ({ size = 24, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>);
-        const NextIcon = ({ size = 16, className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>);
-        const CheckIcon = ({ className="" }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`check-icon ${className}`}><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd"/></svg>);
+        const SettingsIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+        const BookIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
+        const LockIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+        const EarIcon = ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0v5"/><path d="M18 19a3 3 0 0 1-6 0v-2h6v2z"/><path d="M6 19v-2h6"/></svg>;
+        const CoffeeIcon = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>;
+        const GoogleIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.04-1.133 8.133-3.293 2.147-2.147 2.813-5.173 2.813-7.627 0-.76-.08-1.467-.173-2.16H12.48z"/></svg>;
+        const Play = ({ size = 20, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><polygon points="7 4 21 12 7 20"/></svg>;
+        const Pause = ({ size = 20, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
+        const MusicNote = ({ size = 22, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
+        const MusicOff = ({ size = 22, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
+        const RefreshIcon = ({ size = 20, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+        const SubtitleIcon = ({ size = 20, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="12" y2="13"/></svg>;
+        const Sparkles = ({ size = 24, fill="currentColor" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="none"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>;
+        const ArrowLeft = ({ size = 24, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>;
+        const NextIcon = ({ size = 16, className="" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
+        const CheckIcon = ({ className="" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`check-icon ${className}`}><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd"/></svg>;
 
-        // Preload Audio globally
-        const audioCache = {};
-        const getAudio = (url) => {
-            if (!audioCache[url]) {
-                const a = new Audio(url);
-                a.preload = 'auto';
-                audioCache[url] = a;
-            }
-            return audioCache[url];
-        };
-        PRELOAD_AUDIO.forEach(url => getAudio(url));
-
-        const StoryScreen = ({ chapterId, onStart, onBack, masterMute, bgmControl, voiceLang, voiceControl, lang, t }) => {
+        const StoryScreen = ({ chapterId, onStart, onBack, masterMute, bgmControl, voiceLang, voiceControl, lang, t, subLang }) => {
             const data = CHAPTERS_DB[chapterId];
-            const lines = lang === 'ja' ? (data.storyLines_ja || data.storyLines) : data.storyLines;
             
-            const [currentLineIndex, setCurrentLineIndex] = useState(0);
+            const [currentText, setCurrentText] = useState("");
             const [fade, setFade] = useState(true);
             const [showButton, setShowButton] = useState(false);
             const storyVoiceRef = useRef(new Audio());
-            const activeTimeouts = useRef([]);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [playFailed, setPlayFailed] = useState(false);
+            
+            const lastTextRef = useRef("");
 
-            // Story Voice Logic
             useEffect(() => {
-                let src = 'voice/c1/story.mp3';
-                if (chapterId === 1 && voiceLang === 'ja') {
-                    src = 'voice/c1/c1-story-jp.mp3';
-                }
-                storyVoiceRef.current.src = src;
-
-                const vol = masterMute ? 0 : 1.0; 
-                storyVoiceRef.current.volume = vol;
+                const audio = storyVoiceRef.current;
+                const src = voiceLang === 'ja' ? 'voice/c1-story-jp.mp3' : 'voice/c1-story-en.mp3';
                 
-                if (chapterId === 1 && !masterMute && voiceLang !== 'off') {
-                    storyVoiceRef.current.currentTime = 0;
-                    storyVoiceRef.current.play().catch(e => console.log("Voice autoplay prevented", e));
+                if (!audio.src || !audio.src.includes(src)) {
+                    audio.src = src;
+                    audio.load();
                 }
-                return () => {
-                    storyVoiceRef.current.pause();
-                };
-            }, [chapterId, masterMute, voiceLang]);
 
-            useEffect(() => {
-                if (chapterId === 1) {
-                    if (voiceControl.voiceVolume > 0) {
-                        storyVoiceRef.current.volume = voiceControl.voiceVolume;
-                        if (storyVoiceRef.current.paused) storyVoiceRef.current.play().catch(()=>{});
-                    } else {
-                        storyVoiceRef.current.pause();
+                lastTextRef.current = "";
+
+                const handleTimeUpdate = () => {
+                    const currentTime = audio.currentTime;
+                    const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
+                    
+                    if (subtitles) {
+                        const currentSubtitle = subtitles.find(s => currentTime >= s.start && currentTime < s.end);
+                        if (currentSubtitle) {
+                            const text = (subLang === 'ja') ? currentSubtitle.text_jp : currentSubtitle.text_en;
+                            if (lastTextRef.current !== text) {
+                                lastTextRef.current = text;
+                                setFade(false);
+                                setTimeout(() => {
+                                    setCurrentText(text);
+                                    setFade(true);
+                                }, 200);
+                            }
+                        }
                     }
-                }
-            }, [voiceControl.voiceVolume, chapterId]);
+                    
+                    if (audio.ended || (audio.duration > 0 && currentTime >= audio.duration - 0.5)) {
+                        setShowButton(true);
+                    }
+                };
+                
+                const handleEnded = () => {
+                    setIsPlaying(false);
+                    setShowButton(true);
+                };
+                
+                const handleError = (e) => {
+                    // Suppress verbose error for missing demo files
+                    console.warn("Audio file not found or playback failed. Continuing without audio.");
+                    setPlayFailed(true);
+                    setShowButton(true);
+                };
 
-            const clearAllTimeouts = () => {
-                activeTimeouts.current.forEach(clearTimeout);
-                activeTimeouts.current = [];
+                audio.addEventListener('timeupdate', handleTimeUpdate);
+                audio.addEventListener('ended', handleEnded);
+                audio.addEventListener('error', handleError);
+
+                if (chapterId === 1 && voiceLang !== 'off' && !masterMute) {
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise
+                            .then(() => {
+                                setIsPlaying(true);
+                                setPlayFailed(false);
+                            })
+                            .catch(error => {
+                                console.log("Autoplay prevented or interrupted:", error);
+                                setIsPlaying(false);
+                                setPlayFailed(true);
+                            });
+                    }
+                } else if (voiceLang === 'off' || masterMute) {
+                      if (!currentText && data.storyData_en) {
+                          const firstLine = (subLang === 'ja' && data.storyData_ja) ? data.storyData_ja[0].text_jp : data.storyData_en[0].text_en;
+                          setCurrentText(firstLine);
+                          lastTextRef.current = firstLine;
+                      }
+                      setShowButton(true);
+                }
+
+                return () => {
+                    audio.pause();
+                    audio.removeEventListener('timeupdate', handleTimeUpdate);
+                    audio.removeEventListener('ended', handleEnded);
+                    audio.removeEventListener('error', handleError);
+                };
+            }, [chapterId, voiceLang, masterMute]);
+
+            const handleManualStart = () => {
+                storyVoiceRef.current.play()
+                    .then(() => {
+                        setIsPlaying(true);
+                        setPlayFailed(false);
+                    })
+                    .catch(e => console.warn("Manual start failed (likely missing file):", e));
             };
 
             const handleSkip = () => {
-                clearAllTimeouts();
                 storyVoiceRef.current.pause();
-                storyVoiceRef.current.currentTime = 0;
-                setCurrentLineIndex(lines.length - 1);
+                if (Number.isFinite(storyVoiceRef.current.duration)) {
+                    storyVoiceRef.current.currentTime = storyVoiceRef.current.duration;
+                }
+                setIsPlaying(false);
+                
+                const subtitles = (voiceLang === 'ja' && data.storyData_ja) ? data.storyData_ja : data.storyData_en;
+                if (subtitles && subtitles.length > 0) {
+                    const last = subtitles[subtitles.length - 1];
+                    const finalText = (subLang === 'ja') ? last.text_jp : last.text_en;
+                    setCurrentText(finalText);
+                    lastTextRef.current = finalText;
+                }
+                
                 setFade(true);
                 setShowButton(true);
             };
-
-            useEffect(() => {
-                setCurrentLineIndex(0);
-                setShowButton(false);
-                setFade(true);
-                clearAllTimeouts();
-
-                const fadeDuration = 500;
-                const chapter1Durations = [6000, 7000, 4000, 8000, 5000];
-
-                let accumulatedTime = 0;
-
-                lines.forEach((_, i) => {
-                    let duration = 4000;
-                    if (chapterId === 1 && i < chapter1Durations.length) {
-                        duration = chapter1Durations[i];
-                    }
-
-                    if (i < lines.length - 1) {
-                        const fadeOutTime = accumulatedTime + duration;
-                        const t1 = setTimeout(() => setFade(false), fadeOutTime);
-                        activeTimeouts.current.push(t1);
-
-                        const nextLineTime = fadeOutTime + fadeDuration;
-                        const t2 = setTimeout(() => {
-                            setCurrentLineIndex(i + 1);
-                            setFade(true);
-                        }, nextLineTime);
-                        activeTimeouts.current.push(t2);
-
-                        accumulatedTime = nextLineTime;
-                    } else {
-                        const buttonTime = accumulatedTime + 1000;
-                        const t3 = setTimeout(() => setShowButton(true), buttonTime);
-                        activeTimeouts.current.push(t3);
-                    }
-                });
-
-                return () => clearAllTimeouts();
-            }, [lines, chapterId]);
 
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center px-8 py-12 bg-[#111] animate-fade-in-long">
@@ -661,7 +467,7 @@
                     </button>
                     <div className="absolute top-6 right-6 z-50">
                         <button onClick={bgmControl.toggleMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
-                            {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
+                            {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                         </button>
                     </div>
                     <div className="absolute top-16 text-center" style={{animation: 'fadeIn 2s ease-out forwards'}}>
@@ -669,25 +475,35 @@
                         <h1 className="text-2xl font-serif text-gray-300 tracking-widest">{lang === 'ja' ? data.title_ja : data.title}</h1>
                         <div className="w-0 h-px bg-white mx-auto mt-6 animate-expand-line"></div>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-40 max-w-md text-center relative">
-                        <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-                            "{lines[currentLineIndex]}"
-                        </p>
-                        {!showButton && (
+                    
+                    {playFailed && !showButton ? (
+                        <div className="flex flex-col items-center justify-center h-40 z-50">
                             <button 
-                                onClick={handleSkip} 
-                                className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors"
+                                onClick={handleManualStart} 
+                                className="px-6 py-3 border border-white/30 text-white text-sm tracking-widest uppercase hover:bg-white/10 transition-all animate-pulse"
                             >
-                                {t.skip}
+                                TAP TO START
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="w-full flex flex-col items-center justify-center h-40 max-w-md text-center relative">
+                            <p className={`font-script text-base text-[#f9f9f7] leading-relaxed transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+                                {currentText ? `"${currentText}"` : ""}
+                            </p>
+                            {!showButton && (
+                                <button onClick={handleSkip} className="absolute -bottom-8 left-0 right-0 mx-auto w-fit text-[10px] text-gray-600 hover:text-gray-400 font-serif tracking-widest uppercase transition-colors">
+                                    {t.skip}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     <div className={`absolute bottom-16 transition-all duration-1000 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         <div className="text-center mb-8"><p className="text-xs font-serif tracking-widest text-gray-400 opacity-80">{lang === 'ja' ? data.mission_ja : data.mission}</p></div>
                         <button onClick={onStart} className="w-64 py-4 border border-white/20 text-sm tracking-[0.2em] uppercase font-serif text-white cursor-pointer animate-breathe hover:bg-white/5 transition-colors">{t.beginSearch}</button>
                     </div>
                     <div className="absolute inset-0 pointer-events-none opacity-20" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")'}}></div>
-                    <style>{`.animate-fade-in-long { animation: fadeIn 1.5s ease-out; } .animate-expand-line { animation: expandLine 1.5s ease-out forwards 0.5s; } .animate-breathe { animation: breathe 4s infinite ease-in-out; } @keyframes expandLine { from { width: 0; opacity: 0; } to { width: 40px; opacity: 0.5; } }`}</style>
+                    <style>{`.animate-fade-in-long { animation: fadeIn 1.5s ease-out; } .animate-expand-line { animation: expandLine 1.5s ease-out forwards 0.5s; } .animate-breathe { animation: breathe 4s infinite ease-in-out; }`}</style>
                 </div>
             );
         };
@@ -698,97 +514,104 @@
             
             const [isPlaying, setIsPlaying] = useState(false); 
             const [targets, setTargets] = useState(data.targets.map(t => ({...t}))); 
-            const [zoom, setZoom] = useState(1);
-            const [pan, setPan] = useState({ x: 0, y: 0 });
             const [message, setMessage] = useState(null); 
             const [isComplete, setIsComplete] = useState(false);
             const [showNotes, setShowNotes] = useState(false);
-            const [showSettings, setShowSettings] = useState(false);
+            const [isProcessing, setIsProcessing] = useState(false); 
             
             const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
             const currentTarget = targets[currentTargetIndex];
             const gameVoiceRef = useRef(new Audio());
             const [currentSubtitle, setCurrentSubtitle] = useState("");
-            const subtitleTimeouts = useRef([]);
             const [isDevMode, setIsDevMode] = useState(false);
             const [lastClickCoords, setLastClickCoords] = useState(null);
 
-            const [gameLangMode, setGameLangMode] = useState('en'); 
-            
-            useEffect(() => {
-                if (voiceLang === 'ja' || subLang === 'ja') setGameLangMode('ja');
-                else if (voiceLang === 'off' && subLang === 'off') setGameLangMode('off');
-                else setGameLangMode('en');
-            }, []);
-
-            const containerRef = useRef(null);
             const imageRef = useRef(null);
 
-            // Removed the useEffect that auto-stopped audio after 5 seconds
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (document.hidden) {
+                        gameVoiceRef.current.pause();
+                        setIsPlaying(false);
+                    }
+                };
+                document.addEventListener("visibilitychange", handleVisibilityChange);
+                return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+            }, []);
+
+            useEffect(() => {
+                const handleAudioEnd = () => {
+                    setIsPlaying(false);
+                    setCurrentSubtitle("");
+                };
+                gameVoiceRef.current.addEventListener('ended', handleAudioEnd);
+                return () => {
+                    gameVoiceRef.current.removeEventListener('ended', handleAudioEnd);
+                };
+            }, []);
             
-            // Voice Playback Logic
             useEffect(() => {
                 if (!currentTarget) return;
                 
-                const langToUse = (gameLangMode === 'ja' || (gameLangMode === 'off' && settingsControl.voiceLang === 'ja')) ? 'ja' : 'en';
-                const src = langToUse === 'ja' && currentTarget.voice_ja ? currentTarget.voice_ja : currentTarget.voice;
-                
-                if (src) {
-                    gameVoiceRef.current.src = src;
+                const voiceSrc = (voiceLang === 'ja' && currentTarget.voice_ja) ? currentTarget.voice_ja : currentTarget.voice;
+                if (!voiceSrc) return;
+
+                gameVoiceRef.current.pause();
+                setIsPlaying(false);
+                setCurrentSubtitle("");
+
+                gameVoiceRef.current.src = voiceSrc;
+                gameVoiceRef.current.load();
+
+                if (!isComplete && voiceLang !== 'off') {
+                     const timer = setTimeout(() => handlePlayPause(true), 200);
+                     return () => clearTimeout(timer);
                 }
-                
-                setIsPlaying(false); 
-                
+
                 return () => {
                     gameVoiceRef.current.pause();
-                    subtitleTimeouts.current.forEach(clearTimeout);
                 };
-            }, [currentTargetIndex, chapterId, gameLangMode]); 
+            }, [currentTargetIndex, chapterId, voiceLang]); 
 
-            const handlePlayPause = () => {
-                // Ignore masterMute check to allow manual play even if muted
+            useEffect(() => {
+                let interval;
+                if (isPlaying && subLang !== 'off') {
+                    interval = setInterval(() => {
+                        const currentTime = gameVoiceRef.current.currentTime;
+                        const subtitleData = (voiceLang === 'ja') ? currentTarget.subtitleData_ja : currentTarget.subtitleData_en;
 
-                if (isPlaying) {
+                        if (currentTarget && subtitleData) {
+                            const subtitle = subtitleData.find(s => currentTime >= s.start && currentTime < s.end);
+                            if (subtitle) {
+                                setCurrentSubtitle(subLang === 'ja' ? subtitle.text_jp : subtitle.text_en);
+                            } else {
+                                setCurrentSubtitle("");
+                            }
+                        }
+                    }, 100);
+                } else {
+                    setCurrentSubtitle("");
+                }
+                return () => clearInterval(interval);
+            }, [isPlaying, subLang, currentTarget, voiceLang]);
+
+            const handlePlayPause = (forcePlay = false) => {
+                if (isPlaying && !forcePlay) {
                     gameVoiceRef.current.pause();
                     setIsPlaying(false);
-                    subtitleTimeouts.current.forEach(clearTimeout);
-                    setCurrentSubtitle("");
                 } else {
-                    gameVoiceRef.current.volume = 1.0; 
-                    gameVoiceRef.current.currentTime = 0;
-                    gameVoiceRef.current.play().catch(e => console.log("Play error", e));
-                    setIsPlaying(true);
+                    if (voiceLang === 'off') return;
+                    if (masterMute) return;
                     
-                    const showSubs = settingsControl.subLang !== 'off';
-                    
-                    if (showSubs && (currentTarget.subtitles_en || currentTarget.subtitles_ja)) {
-                        const subs = settingsControl.subLang === 'ja' ? currentTarget.subtitles_ja : currentTarget.subtitles_en;
-                        subtitleTimeouts.current.forEach(clearTimeout);
-                        subtitleTimeouts.current = [];
-                        setCurrentSubtitle("");
-
-                        let accumulatedTime = 0;
-                        const defaultDurations = [4000, 4000, 4000, 4000, 4000];
-                        const durations = currentTarget.durations || defaultDurations;
-
-                        subs.forEach((text, i) => {
-                            const showTime = accumulatedTime;
-                            const duration = durations[i] || 4000; 
-                            
-                            const t1 = setTimeout(() => setCurrentSubtitle(text), showTime);
-                            subtitleTimeouts.current.push(t1);
-                            
-                            accumulatedTime += duration;
-                        });
-                        
-                        const tEnd = setTimeout(() => {
-                            setCurrentSubtitle("");
-                            setIsPlaying(false); 
-                        }, accumulatedTime);
-                        subtitleTimeouts.current.push(tEnd);
+                    if (gameVoiceRef.current.paused && gameVoiceRef.current.currentTime > 0 && !gameVoiceRef.current.ended) {
                     } else {
-                         gameVoiceRef.current.onended = () => setIsPlaying(false);
+                        gameVoiceRef.current.currentTime = 0;
+                        gameVoiceRef.current.volume = 1.0; 
                     }
+                    
+                    gameVoiceRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(e => console.log("Play error", e));
                 }
             };
 
@@ -799,41 +622,71 @@
                 }
             }, [masterMute]);
 
-            useEffect(() => {
-                setZoom(1);
-                setPan({x:0, y:0});
-            }, []);
+            const handleBack = () => {
+                gameVoiceRef.current.pause();
+                setIsPlaying(false);
+                onBack();
+            };
 
             const handleImageClick = (e) => {
-                if (!imageRef.current) return;
-                const rect = imageRef.current.getBoundingClientRect();
-                const xPercent = parseFloat((((e.clientX - rect.left) / rect.width) * 100).toFixed(1));
-                const yPercent = parseFloat((((e.clientY - rect.top) / rect.height) * 100).toFixed(1));
+                if (isProcessing || isComplete) return;
+
+                const img = imageRef.current;
+                if (!img) return;
+                const rect = img.getBoundingClientRect();
+                
+                const naturalRatio = img.naturalWidth / img.naturalHeight;
+                const visibleRatio = rect.width / rect.height;
+                
+                let renderWidth, renderHeight, offsetX, offsetY;
+
+                if (visibleRatio > naturalRatio) {
+                    renderWidth = rect.width;
+                    renderHeight = rect.width / naturalRatio;
+                    offsetX = 0;
+                    offsetY = (rect.height - renderHeight) / 2;
+                } else {
+                    renderHeight = rect.height;
+                    renderWidth = rect.height * naturalRatio;
+                    offsetY = 0;
+                    offsetX = (rect.width - renderWidth) / 2;
+                }
+
+                const xInImage = e.clientX - rect.left - offsetX;
+                const yInImage = e.clientY - rect.top - offsetY;
+
+                const xPercent = parseFloat(((xInImage / renderWidth) * 100).toFixed(1));
+                const yPercent = parseFloat(((yInImage / renderHeight) * 100).toFixed(1));
+                
                 if (isDevMode) { setLastClickCoords({ x: xPercent, y: yPercent }); return; }
                 
-                if (isComplete) return;
-
                 const target = targets[currentTargetIndex];
                 if (!target) return;
 
                 const dist = Math.sqrt(Math.pow(xPercent - target.x, 2) + Math.pow(yPercent - target.y, 2));
+                
                 if (dist < target.radius) {
+                    setIsProcessing(true); 
                     triggerFeedback(true);
                     
                     const newTargets = [...targets];
                     newTargets[currentTargetIndex].found = true;
                     setTargets(newTargets);
 
+                    gameVoiceRef.current.pause();
+                    setIsPlaying(false);
+                    setCurrentSubtitle("");
+
                     if (currentTargetIndex < targets.length - 1) {
                         setTimeout(() => {
                             setCurrentTargetIndex(prev => prev + 1);
-                            setIsPlaying(false); 
-                            setCurrentSubtitle("");
+                            setIsProcessing(false); 
                         }, 1500);
                     } else {
                         setTimeout(() => {
                             setIsComplete(true);
                             audioActions.playComplete();
+                            setIsProcessing(false);
                         }, 1500);
                     }
                 } else {
@@ -847,7 +700,6 @@
                     audioActions.playFound();
                 } else {
                     setMessage({ type: 'error', text: t.notFound });
-                    audioActions.playIncorrect();
                 }
                 setTimeout(() => setMessage(null), 2000);
             };
@@ -857,7 +709,7 @@
             return (
                 <div className="flex flex-col h-[100dvh] w-full bg-[#1a1a1a] text-[#f9f9f7] overflow-hidden select-none relative animate-fade-in-game">
                     <header className="flex justify-between items-center px-6 py-4 bg-[#1a1a1a]/90 backdrop-blur-sm z-10 border-b border-white/10 shadow-sm shrink-0">
-                        <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={onBack}>
+                        <div className="flex items-center gap-2 text-gray-400 hover:text-white w-20 cursor-pointer" onClick={handleBack}>
                             <ArrowLeft size={20} className="text-gray-400" /><span className="text-xs uppercase tracking-widest hidden sm:inline">{t.back}</span>
                         </div>
                         <div className="text-center flex flex-col items-center flex-1">
@@ -870,16 +722,16 @@
                         </div>
                     </header>
                     
-                    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center">
+                    <div className="flex-1 relative overflow-hidden bg-[#0a0a0a] game-viewport flex items-center justify-center">
                         <div className="relative shadow-2xl w-full h-full flex items-center justify-center">
-                           <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="max-w-full max-h-full w-auto h-auto object-contain pointer-events-auto select-none" draggable={false} onClick={handleImageClick}/>
+                           <img ref={imageRef} src={data.imageUrl} alt="Hidden Objects Scene" className="w-full h-full object-cover pointer-events-auto object-center" draggable={false} onClick={handleImageClick}/>
                            {isDevMode && targets.map(t => (<div key={t.id} className="absolute border-2 border-blue-500 rounded-full bg-blue-500/20 pointer-events-none" style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.radius * 2}%`, height: `${t.radius * 2}%`, transform: 'translate(-50%, -50%)', }}><span className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-1 rounded whitespace-nowrap z-50">{lang === 'ja' && t.name_ja ? t.name_ja : t.name}</span></div>))}
                            {isDevMode && lastClickCoords && (<div className="absolute w-4 h-4 bg-red-500 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 z-50 shadow-lg border-2 border-white" style={{ left: `${lastClickCoords.x}%`, top: `${lastClickCoords.y}%` }}/>)}
                            {isDevMode && lastClickCoords && (<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50"><div className="bg-red-500 text-white px-4 py-2 rounded shadow-lg font-mono text-xs">x: {lastClickCoords.x}, y: {lastClickCoords.y}</div></div>)}
                         </div>
                         
                         {!message && currentSubtitle && (
-                            <div className="absolute bottom-20 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
+                            <div className="absolute bottom-4 left-0 right-0 mx-auto w-full max-w-lg px-4 pointer-events-none z-20 flex justify-center">
                                 <div className="bg-black/60 text-[#f9f9f7] px-4 py-2 rounded text-xs font-serif tracking-wide text-center leading-relaxed backdrop-blur-sm">
                                     {currentSubtitle}
                                 </div>
@@ -919,7 +771,6 @@
                                         <button onClick={onReplay} className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-all">
                                             <RefreshIcon size={20} className="text-white"/>
                                         </button>
-                                        {/* Next Chapter (Dummy) */}
                                         <button onClick={() => onComplete(chapterId)} className="group flex items-center justify-center gap-3 px-8 py-3 border border-white/30 hover:bg-white/10 transition-all rounded-sm">
                                             <span className="text-xs uppercase tracking-[0.2em] text-white group-hover:text-[#f9f9f7]">{t.nextChapter}</span>
                                             <NextIcon size={16} className="text-white/70 group-hover:translate-x-1 transition-transform"/>
@@ -928,49 +779,9 @@
                                 </div>
                             </div>
                         )}
-                        
-                        {showSettings && (
-                            <div className="absolute bottom-20 left-4 z-50 bg-[#1a1a1a]/95 border border-white/10 rounded-lg p-4 shadow-xl text-xs backdrop-blur-md w-64">
-                                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-                                    <span className="font-serif tracking-widest text-gray-400">Settings</span>
-                                    <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-white">✕</button>
-                                </div>
-                                
-                                <div className="mb-4">
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Voice</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => settingsControl.setVoiceLang('off')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'off' && <CheckIcon />} <span className={settingsControl.voiceLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => settingsControl.setVoiceLang('en')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'en' && <CheckIcon />} <span className={settingsControl.voiceLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => settingsControl.setVoiceLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.voiceLang === 'ja' && <CheckIcon />} <span className={settingsControl.voiceLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <p className="mb-2 text-gray-400 font-bold uppercase tracking-wider">Subtitle</p>
-                                    <div className="flex flex-col gap-2">
-                                        <button onClick={() => settingsControl.setSubLang('off')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'off' && <CheckIcon />} <span className={settingsControl.subLang === 'off' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>OFF</span>
-                                        </button>
-                                        <button onClick={() => settingsControl.setSubLang('en')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'en' && <CheckIcon />} <span className={settingsControl.subLang === 'en' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>English</span>
-                                        </button>
-                                        <button onClick={() => settingsControl.setSubLang('ja')} className="flex items-center text-left hover:text-white transition-colors">
-                                            {settingsControl.subLang === 'ja' && <CheckIcon />} <span className={settingsControl.subLang === 'ja' ? 'ml-0 text-white' : 'ml-4 text-gray-500'}>日本語</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                     <footer className="bg-[#1a1a1a] px-8 py-6 pb-safe border-t border-white/10 flex justify-between items-center z-10 shadow-[0_-5px_15px_rgba(0,0,0,0.2)] shrink-0">
-                        {/* Play/Pause Button - Plays current Voice */}
-                        <button onClick={handlePlayPause} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete}>
+                        <button onClick={() => handlePlayPause()} className={`flex items-center gap-3 transition-colors ${isPlaying ? 'text-gray-400' : 'text-[#f9f9f7]'}`} disabled={isComplete}>
                             <div className={`w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-all ${isPlaying ? 'animate-pulse bg-white/10' : 'hover:bg-white/5'} ${settingsControl.voiceLang === 'off' ? 'opacity-50' : ''}`}>
                                 {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
                             </div>
@@ -981,13 +792,8 @@
                         </button>
                         
                         <div className="flex items-center gap-4">
-                            {/* New Settings Toggle */}
-                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
-                                <SubtitleIcon size={20} className="text-[#f9f9f7]" />
-                            </button>
-                            
-                            <button onClick={bgmControl.toggleMute} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
-                                {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
+                            <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 transition-colors active:scale-95 text-[#f9f9f7] hover:text-white">
+                                {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                             </button>
                         </div>
                     </footer>
@@ -1004,7 +810,7 @@
             useEffect(() => { const timer = setTimeout(() => setIsInitialLoad(false), 6000); return () => clearTimeout(timer); }, []);
 
             const handleOpenJournal = () => {
-                audioActions.playClick();
+                audioActions.playClick1();
                 const lastCleared = Math.max(0, ...clearedChapters);
                 const nextChapter = (lastCleared < Object.keys(CHAPTERS_DB).length) ? lastCleared + 1 : 1;
                 onNavigate('STORY', nextChapter > 1 ? nextChapter : 1);
@@ -1021,8 +827,8 @@
             return (
                 <div className="relative w-full h-[100dvh] flex flex-col justify-between py-12 px-6 overflow-hidden">
                     <div className="absolute top-6 right-6 z-50">
-                        <button onClick={bgmControl.toggleMute} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
-                             {bgmControl.bgmVolume > 0 ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
+                        <button onClick={() => { bgmControl.toggleMute(); audioActions.playClick2(); }} className="p-2 text-[#f9f9f7] hover:text-white transition-colors">
+                             {!masterMute ? <MusicNote size={20} className="text-[#f9f9f7]"/> : <MusicOff size={20} className="text-gray-600"/>}
                         </button>
                     </div>
 
@@ -1035,8 +841,8 @@
                         <h1 className="text-5xl md:text-7xl font-serif text-[#f9f9f7] tracking-wider mb-2">Wizper</h1>
                         <p className="font-script text-xl text-gray-400 italic opacity-80">{TRANSLATIONS['en'].appSubtitle}</p>
                     </div>
-                    <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-6">
-                        <div className="w-full flex flex-col items-center gap-6">
+                    <div className="z-10 w-full max-w-md mx-auto mb-safe flex flex-col items-center gap-3">
+                        <div className="w-full flex flex-col items-center gap-3">
                             <p className={`text-xs text-center leading-relaxed text-gray-400 max-w-xs font-serif italic ${getFadeClass('anim-fade-in')}`} style={isInitialLoad ? {animationDelay: '2.5s'} : {}}>{t.introText.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)}</p>
                             <div className="w-full">
                                 <button onClick={handleOpenJournal} className={`w-full py-4 hover:bg-white/10 transition-colors text-sm tracking-[0.2em] uppercase font-serif text-[#f9f9f7] ${getGlassClass()}`} style={isInitialLoad ? {animationDelay: '2.8s'} : {}}>{t.beginButton}</button>
@@ -1087,8 +893,8 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.language}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setLanguage('en')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>English</button>
-                                    <button onClick={() => settingsControl.setLanguage('ja')} className={`flex-1 py-2 border text-xs transition-all ${lang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>日本語</button>
+                                    <button onClick={() => { settingsControl.setLanguage('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${lang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>English</button>
+                                    <button onClick={() => { settingsControl.setLanguage('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${lang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600 hover:border-gray-400'}`}>日本語</button>
                                 </div>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
                             </div>
@@ -1096,9 +902,9 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.subtitles}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setSubLang('off')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
-                                    <button onClick={() => settingsControl.setSubLang('en')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
-                                    <button onClick={() => settingsControl.setSubLang('ja')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('off'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
+                                    <button onClick={() => { settingsControl.setSubLang('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.subLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 italic leading-relaxed">{t.subtitlesDesc}</p>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
@@ -1107,9 +913,9 @@
                             <div className="flex flex-col gap-3">
                                 <span className="text-sm tracking-widest">{t.voice}</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => settingsControl.setVoiceLang('off')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
-                                    <button onClick={() => settingsControl.setVoiceLang('en')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
-                                    <button onClick={() => settingsControl.setVoiceLang('ja')} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('off'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'off' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.off}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('en'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'en' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.english}</button>
+                                    <button onClick={() => { settingsControl.setVoiceLang('ja'); audioActions.playClick2(); }} className={`flex-1 py-2 border text-xs transition-all ${settingsControl.voiceLang === 'ja' ? 'bg-white text-black border-white' : 'text-gray-400 border-gray-600'}`}>{t.japanese}</button>
                                 </div>
                                 <div className="h-px bg-white/10 w-full border-b border-white/5 border-solid opacity-60 mt-2"></div>
                             </div>
@@ -1167,13 +973,25 @@
             
             const homeBgmRef = useRef(new Audio('music/school-of-magic.mp3'));
             const gameBgmRef = useRef(new Audio('music/the-mischievous-wizard.mp3'));
-            const sfxClick = useRef(getAudio('music/click.mp3'));
-            const sfxClick2 = useRef(getAudio('music/click2.mp3'));
+            const sfxClick1 = useRef(getAudio('SFX/click1.mp3'));
+            const sfxClick2 = useRef(getAudio('SFX/click2.mp3'));
             const sfxFound = useRef(getAudio('music/found.mp3'));
             const sfxComplete = useRef(getAudio('music/complete.mp3'));
             const testVoiceRef = useRef(new Audio('music/testvoice.mp3'));
             const lastVoiceTestTime = useRef(0);
             const lastSfxTestTime = useRef(0);
+
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (document.hidden) {
+                         homeBgmRef.current.pause();
+                         gameBgmRef.current.pause();
+                         testVoiceRef.current.pause();
+                    }
+                };
+                document.addEventListener("visibilitychange", handleVisibilityChange);
+                return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+            }, []);
 
             useEffect(() => {
                 homeBgmRef.current.loop = true;
@@ -1185,18 +1003,18 @@
             }, []);
 
             useEffect(() => {
-                const effBgm = bgmVolume;
+                const effBgm = masterMute ? 0 : bgmVolume;
                 
                 if (screen === 'HOME' || screen === 'STORY') {
                    if (screen === 'STORY') {
-                       if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm * 0.66;
+                       if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm;
                    } else {
                        if (!homeBgmRef.current.paused) homeBgmRef.current.volume = effBgm;
                    }
                 } else if (screen === 'GAME') {
                    if (!gameBgmRef.current.paused) gameBgmRef.current.volume = effBgm * 0.15; 
                 }
-            }, [bgmVolume, screen]);
+            }, [bgmVolume, screen, masterMute]);
 
             useEffect(() => {
                 const fadeDuration = 1000;
@@ -1204,7 +1022,7 @@
                 const interval = fadeDuration / steps;
                 let fadeTimer;
                 
-                const effBgm = bgmVolume;
+                const effBgm = masterMute ? 0 : bgmVolume;
 
                 if (effBgm <= 0) {
                     homeBgmRef.current.pause();
@@ -1214,9 +1032,9 @@
 
                 if (screen === 'HOME') {
                     gameBgmRef.current.pause();
-                     if (homeBgmRef.current.paused) {
+                    if (homeBgmRef.current.paused) {
                         homeBgmRef.current.volume = 0;
-                        homeBgmRef.current.play().catch(e => console.log("Auto-play prevented", e));
+                        homeBgmRef.current.play().catch(e => {});
                         
                         let vol = 0;
                         const targetVol = effBgm;
@@ -1233,7 +1051,7 @@
                     gameBgmRef.current.pause();
                     homeBgmRef.current.currentTime = 0;
                     homeBgmRef.current.volume = effBgm;
-                    homeBgmRef.current.play().catch(e => console.log("Story BGM play prevented", e));
+                    homeBgmRef.current.play().catch(e => {});
 
                 } else if (screen === 'GAME') {
                     homeBgmRef.current.pause();
@@ -1241,7 +1059,7 @@
                     if (gameBgmRef.current.paused) {
                         gameBgmRef.current.currentTime = 0;
                         gameBgmRef.current.volume = 0;
-                        gameBgmRef.current.play().catch(e => console.log("Auto-play prevented", e));
+                        gameBgmRef.current.play().catch(e => {});
                         let vol = 0;
                         const targetVol = effBgm * 0.15;
                         fadeTimer = setInterval(() => {
@@ -1255,12 +1073,13 @@
                 return () => {
                     clearInterval(fadeTimer);
                 };
-            }, [screen, bgmVolume]); 
+            }, [screen, bgmVolume, masterMute]); 
 
             const playSfx = (type) => {
                 if (sfxVolume <= 0) return;
                 let audio = null;
-                if (type === 'click') audio = sfxClick.current;
+                if (type === 'click') audio = sfxClick1.current;
+                else if (type === 'click1') audio = sfxClick1.current;
                 else if (type === 'click2') audio = sfxClick2.current;
                 else if (type === 'found') audio = sfxFound.current;
                 else if (type === 'complete') audio = sfxComplete.current;
@@ -1272,39 +1091,8 @@
                 }
             };
 
-            const playIncorrect = () => {
-                if (sfxVolume <= 0) return;
-                
-                if (sfxClick.current) {
-                    sfxClick.current.currentTime = 0;
-                    sfxClick.current.play().catch(()=>{});
-                }
-            };
-
             const toggleMasterMute = () => {
-                if (bgmVolume > 0) {
-                    setBgmVolume(0);
-                } else {
-                    setBgmVolume(0.5);
-                }
-            };
-
-            const toggleMute = () => {
-                if (bgmVolume > 0) {
-                    setPrevBgmVolume(bgmVolume);
-                    setBgmVolume(0);
-                } else {
-                    setBgmVolume(prevBgmVolume > 0 ? prevBgmVolume : 0.5);
-                }
-            };
-
-            const toggleVoiceMute = () => {
-                if (voiceVolume > 0) {
-                    setPrevVoiceVolume(voiceVolume);
-                    setVoiceVolume(0);
-                } else {
-                    setVoiceVolume(prevVoiceVolume > 0 ? prevVoiceVolume : 1.0);
-                }
+                setMasterMute(!masterMute);
             };
 
             useEffect(() => {
@@ -1354,10 +1142,11 @@
 
             const audioActions = {
                 playClick: () => playSfx('click'),
+                playClick1: () => playSfx('click1'),
                 playClick2: () => playSfx('click2'),
                 playFound: () => playSfx('found'),
                 playComplete: () => playSfx('complete'),
-                playIncorrect: playIncorrect,
+                playIncorrect: () => {}, 
                 toggleMasterMute: toggleMasterMute 
             };
 
@@ -1403,14 +1192,13 @@
                 setVoiceVolume: voiceControl.setVoiceVolume,
                 setLanguage: setLanguage,
                 voiceLang, setVoiceLang,
-                subLang, setSubLang,
-                setSubLang
+                subLang, setSubLang
             };
 
             return (
                 <>
                     {screen === 'HOME' && <HomeScreen onNavigate={navigate} user={user} login={login} logout={logout} clearedChapters={clearedChapters} masterMute={masterMute} toggleMasterMute={toggleMasterMute} bgmControl={bgmControl} voiceControl={voiceControl} audioActions={audioActions} settingsControl={settingsControl} lang={language} />}
-                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} voiceControl={voiceControl} lang={language} t={TRANSLATIONS[language]} />}
+                    {screen === 'STORY' && <StoryScreen chapterId={activeChapter} onStart={() => { playSfx('click'); navigate('GAME'); }} onBack={() => { navigate('HOME'); }} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} voiceControl={voiceControl} lang={language} t={TRANSLATIONS[language]} subLang={subLang} />}
                     {screen === 'GAME' && <GameScreen chapterId={activeChapter} onBack={() => { playSfx('click'); navigate('HOME'); }} onComplete={handleChapterComplete} masterMute={masterMute} bgmControl={bgmControl} voiceLang={voiceLang} subLang={subLang} voiceControl={voiceControl} audioActions={audioActions} lang={language} settingsControl={settingsControl} onReplay={() => { navigate('HOME'); setTimeout(() => navigate('GAME'), 100); }} />}
                 </>
             );
